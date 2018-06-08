@@ -2,8 +2,7 @@ const fetch = require('node-fetch');
 const Log = require('../src/utilities/Log');
 
 const path = process.env.ENVIRONMENT_URL;
-const zebedeePath = process.env.ZEBEDEE_PATH;
-const zebedeeURL = `${path}${zebedeePath}`;
+const zebedeeURL = `${path}/zebedee`;
 const adminCredentials = {
     email: process.env.ROOT_ADMIN_EMAIL,
     password: process.env.ROOT_ADMIN_PASSWORD
@@ -15,11 +14,6 @@ module.exports = class Zebedee {
 
     static async initialise() {
         Log.info("Zebedee initialisation started");
-
-        if (!zebedeePath) {
-            Log.warn("Unable to setup and start tests because no path for Zebedee API was provided\nSet environment variable ZEBEDEE_PATH with a valid path");
-            throw Error("Zebedee path not provided");
-        }
 
         if (!adminCredentials.email || !adminCredentials.password) {
             Log.warn("Unable to setup and start tests because root admin email or password not provided\nSet environment variables ROOT_ADMIN_EMAIL and ROOT_ADMIN_PASSWORD with valid credentials");
