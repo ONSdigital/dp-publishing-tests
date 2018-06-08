@@ -1,0 +1,24 @@
+{
+  "name": "dp-publishing-tests",
+  "version": "0.0.1",
+  "description": "Acceptance tests for ONS publishing platform",
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:dev": "DEBUG=true npm test",
+    "test:smoke": "npm test -- -t=smoke"
+  },
+  "author": "ONS digital publishing",
+  "license": "ISC",
+  "dependencies": {
+    "babel-core": "^6.26.3",
+    "babel-jest": "^23.0.1",
+    "babel-preset-env": "^1.7.0",
+    "expect-puppeteer": "^3.0.1",
+    "jest": "^23.1.0",
+    "jest-environment-puppeteer": "^2.4.0",
+    "jest-puppeteer": "^3.0.1",
+    "node-fetch": "^2.1.2",
+    "puppeteer": "^1.4.0",
+    "signale": "^1.1.0"
+  }
+}
