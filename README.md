@@ -34,7 +34,7 @@ The following environment variables are available when running the Go server.
 | ROOT_ADMIN_EMAIL     | "florence@magicroundabout.ons.gov.uk"         | Email address of the existing admin account that will be used to create temporary users during tests                                               |
 | ENVIRONMENT_URL      | "https://publishing.develop.onsdigital.co.uk" | URL for the environment to run the test suite on                                                                                                   |
 | DEBUG                | false                                         | If `true` it runs the tests in developer mode, so it doesn't run headlessly, it slows down actions and pipe's the browsers console to the terminal |
-| SKIP_SETUP_TEARDOWN  | false                                         |  If `true` then the global setup and teardown won't run with the test suite                                                                        |
+| SKIP_SETUP_TEARDOWN  | false                                         | If `true` then the global setup and teardown won't run with the test suite                                                                        |
 
 
 ### Contributing
