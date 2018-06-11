@@ -23,7 +23,7 @@ ROOT_ADMIN_PASSWORD='<password for florence@magicroundabout.ons.gov.uk account>'
 
 ### Configuration
 
-The following environment variables are available when running the Go server.
+The following environment variables are available when running the tests:
 
 \* = Required to run tests
 
