@@ -9,6 +9,5 @@ module.exports = async function globalTeardown() {
         console.log("Tearing down...");
         await Zebedee.cleanup();
     }
-
     await teardownPuppeteer()
 }

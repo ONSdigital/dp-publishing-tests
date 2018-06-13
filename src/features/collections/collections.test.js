@@ -12,6 +12,7 @@ describe("Collections screen", () => {
     });
 
     it("loads [smoke]", async () => {
+        await CollectionsPage.waitForLoad();
         expect(await CollectionsPage.isLoaded()).toBe(true);
     });
 

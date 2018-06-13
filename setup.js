@@ -8,5 +8,5 @@ module.exports = async function globalSetup() {
         console.log("\nSetting up...");
         await Zebedee.initialise();
     }
-    await setupPuppeteer()
+    await setupPuppeteer();
 }

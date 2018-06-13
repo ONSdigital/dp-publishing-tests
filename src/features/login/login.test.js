@@ -6,7 +6,7 @@ import NavBar from '../../pages/global/NavBar';
 describe('Login screen', async () => {
 
     beforeAll(async () => {
-        await LoginPage.initialise();
+        await LoginPage.initialise(true);
     });
 
     beforeEach(async() => {

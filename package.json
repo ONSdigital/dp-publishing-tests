@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "description": "Acceptance tests for ONS publishing platform",
   "scripts": {
-    "test": "jest --runInBand",
-    "test:dev": "DEBUG=true npm test",
-    "test:smoke": "npm test -- -t=smoke"
+    "test": "jest --runInBand --no-cache",
+    "test:dev": "DEBUG=true npm test --detectOpenHandles",
+    "test:dev:verbose": "DEBUG='puppeteer:*' npm test --detectOpenHandles",
+    "test:smoke": "npm test -- -t=smoke",
+    "cleanup": "npm"
   },
   "author": "ONS digital publishing",
   "license": "ISC",
@@ -14,6 +16,7 @@
     "babel-jest": "^23.0.1",
     "babel-preset-env": "^1.7.0",
     "expect-puppeteer": "^3.0.1",
+    "interval-promise": "^1.2.0",
     "jest": "^23.1.0",
     "jest-environment-puppeteer": "^2.4.0",
     "jest-puppeteer": "^3.0.1",

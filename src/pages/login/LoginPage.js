@@ -18,7 +18,7 @@ export default class LoginPage extends Page {
         await super.goto("/login").catch(error => {
             console.error("Error navigating to login page\n", error);
         });
-    }
+    } 
 
     static async screenshot() {
         await super.screenshot("login");

@@ -12,7 +12,7 @@ There are a few options on how the tests can be run:
 ### On an environment
 If you have access to a live environment and want to run the full test suite:
 ```
-ENVIRONMENT_URL=https://publishing.develop.onsdigital.co.uk ROOT_ADMIN_PASSWORD='<password for florence@magicroundabout.ons.gov.uk account>' TEMP_USER_PASSWORD='<password for temporary user created by tests>' make test
+PUBLISHING_ENV_URL=https://publishing.develop.onsdigital.co.uk ROOT_ADMIN_PASSWORD='<password for florence@magicroundabout.ons.gov.uk account>' TEMP_USER_PASSWORD='<password for temporary user created by tests>' make test
 ```
 
 ### On a local machine
@@ -32,7 +32,7 @@ The following environment variables are available when running the tests:
 | TEMP_USER_PASSWORD*  |  none                                         | Password to assign to the temporary admin account that is created to run the test suite                                                            |
 | ROOT_ADMIN_PASSWORD* |  none                                         | Password of the existing admin account that will be used to create temporary users during tests                                                    |
 | ROOT_ADMIN_EMAIL     | "florence@magicroundabout.ons.gov.uk"         | Email address of the existing admin account that will be used to create temporary users during tests                                               |
-| ENVIRONMENT_URL      | "https://publishing.develop.onsdigital.co.uk" | URL for the environment to run the test suite on                                                                                                   |
+| PUBLISHING_ENV_URL      | "https://publishing.develop.onsdigital.co.uk" | URL for the environment to run the test suite on                                                                                                   |
 | DEBUG                | false                                         | If `true` it runs the tests in developer mode, so it doesn't run headlessly, it slows down actions and pipe's the browsers console to the terminal |
 | SKIP_SETUP_TEARDOWN  | false                                         | If `true` then the global setup and teardown won't run with the test suite                                                                        |
 

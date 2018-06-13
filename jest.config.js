@@ -4,5 +4,6 @@ module.exports = {
     verbose: true,
     bail: false,
     globalSetup: "./setup.js",
-    globalTeardown: "./teardown.js"
+    globalTeardown: "./teardown.js",
+    testEnvironment: "./environment.js"
 };
