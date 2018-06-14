@@ -28,11 +28,20 @@ export default class CollectionsPage extends Page {
         // because Zebedee uses it's publish date to set the collection's publish date.
         await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
         
-        const collections = await Promise.all(tempCollectionsData.map(collection => Zebedee.createCollection(collection)))
-            .catch(error => {
-                Log.error(error);
-                throw error;
-            });
+        let collections = [];
+        for (const collection of tempCollectionsData) {
+            const createdCollection = await Zebedee.createCollection(collection)
+                .catch(error => {
+                    Log.error(error);
+                    throw error;
+                });
+            collections.push(createdCollection);
+        }
+        // const collections = await Promise.all(tempCollectionsData.map(collection => Zebedee.createCollection(collection)))
+        //     .catch(error => {
+        //         Log.error(error);
+        //         throw error;
+        //     });
      
         createdCollectionIDs = collections.map(collection => collection.id);
         return collections;
@@ -48,7 +57,8 @@ export default class CollectionsPage extends Page {
             name: await collection.$eval('.grid__col-6:nth-of-type(1)', element => element.textContent),
             publishDate: await collection.$eval('.grid__col-6:nth-of-type(2)', element => element.textContent)
         })));
-        return collectionDetails
+        await super.screenshot("all-collections");
+        return collectionDetails;
     }
 
     static async selectCollectionByID(ID) {
