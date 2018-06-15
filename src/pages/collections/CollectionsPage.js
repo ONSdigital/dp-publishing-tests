@@ -37,7 +37,7 @@ export default class CollectionsPage extends Page {
     static async setupCollectionsList(tempCollectionsData) {
         // Create a valid published calendar entry for our 'scheduled by release' collection to use
         // because Zebedee uses it's publish date to set the collection's publish date.
-        const calendarEntryCollection = await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
+        await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
         
         let collections = [];
         // Use for...of so that we can ensure collections are created in the order we want them

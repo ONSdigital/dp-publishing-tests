@@ -523,13 +523,19 @@ const Zebedee = class {
             collectionOwner: "ADMIN"
         });
 
-        const calendarEntryResponse = await fetch(`${path}/releases/acceptancetestcalendarentry/data`, {
-            credentials: "include"
+    
+        const calendarEntryResponse = await fetch(`${path}/releases/acceptancetestcalendarentry`, {
+            headers: {
+                cookie: `access_token=${this.getTempUserAccessToken()}`
+            }
         });
 
-        console.log("Response to checking whether test calendar entry is published: " + calendarEntryResponse.status);
-        if (calendarEntryResponse.status === 200) {
-            console.warn("Test calendar entry already exists and will be deleted");
+        if (!calendarEntryResponse.ok && calendarEntryResponse.status !== 404) {
+            throw Error(`Unexpected responsee when checking whether test calendar entry is already published - ${calendarEntryResponse.status}: ${calendarEntryResponse.statusText}`);
+        }
+
+        if (calendarEntryResponse.ok) {
+            console.warn("Test calendar entry already exists so will be deleted");
             await this.deleteTestCalendarEntry();
         }
         
