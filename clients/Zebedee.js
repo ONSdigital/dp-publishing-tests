@@ -253,9 +253,16 @@ const Zebedee = class {
             })
         );
 
-        let response = await request(this.getAdminAccessToken());
+        console.log(`Creating collection '${collection.name}'`);
 
+        let response = await request(this.getAdminAccessToken());
         if (response.status === 409) {
+            const json = await response.json();
+            if (json.message && json.message === "Cannot use this release. It is being edited as part of another collection.") {
+                console.warn(`Unable to create collection '${collection.name}' because release '${collection.releaseUri}' is already in collection '${json.data.collectionName}'`);
+                throw Error(`409: ${json.message}`);
+            }
+            console.warn(`Deleting collection '${collection.name}' because it already exists`);
             const collectionData = await this.getCollectionByName(collection.name);
             await this.deleteCollection(collectionData.id);
             response = await request(this.getAdminAccessToken());
@@ -301,7 +308,33 @@ const Zebedee = class {
 
         const json = await response.json();
 
-        return json.find(collection => collection.name === collectionName);
+        console.log(`Getting data for collection '${collectionName}'`);
+        const collection = json.find(collection => collection.name === collectionName);
+        if (!collection) {
+            throw Error(`Unable to find collection with the name '${collectionName}'`)
+        }
+        console.log(`Data received for '${collectionName}', new ID: ${collection.id}`);
+        return collection;
+    }
+
+    static async checkCollectionExists(ID) {
+        const response = await fetch(`${zebedeeURL}/collectionDetails/${ID}`, {
+            headers: {
+                "X-Florence-Token": this.getTempUserAccessToken(),
+                "Content-type": "application/json"
+            },
+            method: "GET"
+        });
+
+        if (response.status === 404) {
+            return false;
+        }
+
+        if (response.ok) {
+            return true;
+        }
+
+        throw Error(`Unexpected response when checking whether collection '${ID}' exists: ${response.status} - ${response.statusText}`);
     }
 
     static async getCollectionDetails(ID) {
@@ -361,6 +394,13 @@ const Zebedee = class {
     }
     
     static async deleteCollection(ID) {
+        console.log(`Deleting collection '${ID}'`);
+
+        if (!(await this.checkCollectionExists(ID))) {
+            console.log(`Cancelling delete because collection '${ID}' doesn't exist`);
+            return;
+        }
+
         await this.removeAllPagesFromCollection(ID);
 
         const request = accessToken => (
@@ -376,7 +416,7 @@ const Zebedee = class {
 
         let response = await request(this.getAdminAccessToken());
         if (response.status === 401) {
-            // Log.info("Not logged in when attempting to delete collection. Logging in as admin and trying again.")
+            Log.info("Not logged in when attempting to delete collection. Logging in as admin and trying again.")
             this.setAdminAccessToken(await this.loginAsRootAdmin());
             response = await request(this.getAdminAccessToken());
             if (response.status === 401) {
@@ -436,6 +476,8 @@ const Zebedee = class {
             })
         );
 
+        console.log(`Publishing collection '${ID}'`)
+
         let response = await request(this.getAdminAccessToken());
         if (response.status === 401) {
             // Log.info("Not logged in when attempting to delete collection. Logging in as admin and trying again.")
@@ -450,21 +492,47 @@ const Zebedee = class {
             throw Error(`${response.status}: ${response.statusText}`);
         }
 
-        const json = await response.json();
+        const publishedSuccessfully = await response.text();    
+        if (!publishedSuccessfully) {
+            throw Error(`Collection '${ID}' failed to publish`);
+        }
 
-        return json;
+        return publishedSuccessfully;
     }
 
-    static async createCalendarEntry(name, publishDate) {
+    static async deleteTestCalendarEntry() {
         const collection = await this.createCollection({
-            name: "Acceptance test collection - publish calendar entry",
+            name: "Acceptance test collection - delete calendar entry " + (Math.floor(Math.random() * 1000000000)),
             type: "manual",
             teams: [],
             collectionOwner: "ADMIN"
         });
 
+        await this.addPageDeleteToCollection("/releases/acceptancetestcalendarentry", collection.id);
+        await this.approveCollection(collection.id);
+        await this.publishCollection(collection.id);
 
+        return collection;
+    }
 
+    static async createCalendarEntry(name, publishDate) {
+        const collection = await this.createCollection({
+            name: "Acceptance test collection - publish calendar entry " + (Math.floor(Math.random() * 1000000000)),
+            type: "manual",
+            teams: [],
+            collectionOwner: "ADMIN"
+        });
+
+        const calendarEntryResponse = await fetch(`${path}/releases/acceptancetestcalendarentry/data`, {
+            credentials: "include"
+        });
+
+        console.log("Response to checking whether test calendar entry is published: " + calendarEntryResponse.status);
+        if (calendarEntryResponse.status === 200) {
+            console.warn("Test calendar entry already exists and will be deleted");
+            await this.deleteTestCalendarEntry();
+        }
+        
         const body = {
             dateChanges: [],
             description: {
@@ -505,28 +573,7 @@ const Zebedee = class {
             throw Error(`Unable to create calendar entry - ${saveResponse.status}: ${saveResponse.statusText}`);
         }
 
-        const submitResponse = await fetch(`${zebedeeURL}/complete/${collection.id}?uri=/releases/acceptancetestcalendarentry/data.json`, {
-            method: "POST",
-            headers: {
-                "X-Florence-Token": this.getTempUserAccessToken()
-            }
-        });
-
-        if (!submitResponse.ok) {
-            throw Error(`Unable to submit test calendar entry for review - ${submitResponse.status}: ${submitResponse.statusText}`);
-        }
-
-        const reviewResponse = await fetch(`${zebedeeURL}/review/${collection.id}?uri=/releases/acceptancetestcalendarentry/data.json`, {
-            method: "POST",
-            headers: {
-                "X-Florence-Token": this.getAdminAccessToken()
-            }
-        });
-
-        if (!reviewResponse.ok) {
-            throw Error(`Unable to review test calendar entry - ${reviewResponse.status}: ${reviewResponse.statusText}`);
-        }
-
+        await this.reviewContentItem("/releases/acceptancetestcalendarentry", collection.id);
         await this.approveCollection(collection.id);
         await this.publishCollection(collection.id);
 
@@ -563,6 +610,50 @@ const Zebedee = class {
 
         if (!isPublished) {
             throw Error("Test calendar entry hasn't published successfully");
+        }
+
+        return collection;
+    }
+
+    static async addPageDeleteToCollection(URI, collectionID) {
+        const response = await fetch(`${zebedeeURL}/DeleteContent`, {
+            method: "POST",
+            headers: {
+                "X-Florence-Token": this.getTempUserAccessToken()
+            },
+            body: JSON.stringify({
+                uri: URI,
+                collectionId: collectionID,
+                user: this.getTempAdminUserEmail()
+            })
+        });
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error deleting published page '${URI}' in collection '${collectionID}'`);
+        }
+    }
+
+    static async reviewContentItem(URI, collectionID) {
+        const submitResponse = await fetch(`${zebedeeURL}/complete/${collectionID}?uri=${URI}/data.json`, {
+            method: "POST",
+            headers: {
+                "X-Florence-Token": this.getTempUserAccessToken()
+            }
+        });
+
+        if (!submitResponse.ok) {
+            throw Error(`Unable to submit test calendar entry for review - ${submitResponse.status}: ${submitResponse.statusText}`);
+        }
+
+        const reviewResponse = await fetch(`${zebedeeURL}/review/${collectionID}?uri=${URI}/data.json`, {
+            method: "POST",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        });
+
+        if (!reviewResponse.ok) {
+            throw Error(`Unable to review test calendar entry - ${reviewResponse.status}: ${reviewResponse.statusText}`);
         }
     }
 }

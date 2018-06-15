@@ -12,17 +12,17 @@ const tempCollectionsData = [
         collectionOwner: "ADMIN"
     },
     {
-        name: "Acceptance test collection 2 (scheduled)",
-        publishDate: "2020-01-08T09:30:00.000Z",
-        releaseUri: null,
+        name: "Acceptance test collection 3 (scheduled by release)",
+        publishDate: null,
+        releaseUri: "/releases/acceptancetestcalendarentry",
         teams: [],
         type: "scheduled",
         collectionOwner: "ADMIN"
     },
     {
-        name: "Acceptance test collection 3 (scheduled by release)",
-        publishDate: null,
-        releaseUri: "/releases/acceptancetestcalendarentry",
+        name: "Acceptance test collection 2 (scheduled)",
+        publishDate: "2020-01-08T09:30:00.000Z",
+        releaseUri: null,
         teams: [],
         type: "scheduled",
         collectionOwner: "ADMIN"
@@ -34,21 +34,29 @@ let allCollections = [];
 describe("List of collections", () => {
 
     beforeAll(async () => {
-        await CollectionsPage.initialise();
-        await CollectionsPage.setupCollectionsList(tempCollectionsData);
-        await CollectionsPage.goto();
-        allCollections = await CollectionsPage.getAllCollectionsInList();
+        try {
+            await CollectionsPage.initialise();
+            await CollectionsPage.setupCollectionsList(tempCollectionsData);
+            await CollectionsPage.goto();
+            await CollectionsPage.waitForLoad();
+            allCollections = await CollectionsPage.getAllCollectionsInList();
+        } catch (error) {
+            await CollectionsPage.cleanupCollectionsList();
+            fail(error);
+        }
     });
 
     afterAll(async () => {
-        await CollectionsPage.cleanupCollectionsList();
-        await CollectionsPage.cleanup();
+        try {
+            await CollectionsPage.cleanupCollectionsList();
+        } catch (error) {
+            console.error("Post collections list test cleanup failed", error);
+        }
     });
 
     beforeEach(async () => {
         await CollectionsPage.goto();
         await CollectionsPage.waitForLoad();
-        expect(await CollectionsPage.isLoaded()).toBe(true);
     });
 
     it("displays the collection names and publish dates", async () => {        
@@ -77,8 +85,17 @@ describe("List of collections", () => {
         expect(allCollections[2].name).toBe('Acceptance test collection 3 (scheduled by release)');
     });
 
-    it.skip("shows a collection item as active when clicked", () => {
+    it("shows a collection item as active when clicked", async () => {
+        await expectPuppeteer(page).toClick(`#${allCollections[0].id}`);
 
+        let activeCollectionIDs = await CollectionsPage.getActiveCollectionIDs();
+        expect(activeCollectionIDs.length).toBe(1);
+        expect(activeCollectionIDs[0] === allCollections[0].id).toBe(true);
+
+        await expectPuppeteer(page).toClick(`#${allCollections[1].id}`);
+        activeCollectionIDs = await CollectionsPage.getActiveCollectionIDs();
+        expect(activeCollectionIDs.length).toBe(1);
+        expect(activeCollectionIDs[0] === allCollections[1].id).toBe(true);
     });
 
 });
