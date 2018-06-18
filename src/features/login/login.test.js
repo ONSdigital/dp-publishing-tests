@@ -10,7 +10,8 @@ describe('Login screen', async () => {
     });
 
     beforeEach(async() => {
-        await LoginPage.goto();
+        await LoginPage.load();
+        await LoginPage.screenshot("login");
     });
     
     it("loads [smoke]", async () => {

@@ -17,11 +17,10 @@ export default class CollectionsPage extends Page {
         await page.waitForSelector('h1', {text: "Select a collection", visible: true});
     }
 
-    static async goto() {       
+    static async load() {       
         await super.goto("/collections").catch(error => {
             console.error("Error navigating to collections page\n", error);
         });
-        await super.screenshot("all-collections");
     }
 
     static async getActiveCollectionIDs() {

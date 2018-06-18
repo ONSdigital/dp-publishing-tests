@@ -13,6 +13,7 @@ export default class Page {
         }
 
         if (doNotLogin) {
+            await this.revokeAuthentication();
             return;
         }
 
@@ -44,6 +45,11 @@ export default class Page {
         });
     }
 
+    static async currentPath() {
+        const URL = await page.url();
+        return URL.replace(process.env.PUBLISHING_ENV_URL, "");
+    }
+
     static async setAccessTokenCookie(token) {
         await page.setCookie({
             name: "access_token",
@@ -63,6 +69,14 @@ export default class Page {
         await page.evaluate(userType => {
             localStorage.setItem("userType", userType);
         }, userType);
+    }
+
+    static async revokeAuthentication() {
+        const cookies = await page.cookies(process.env.PUBLISHING_ENV_URL);
+        if (cookies.length > 0 && !cookies.some(cookie => cookie.name === "access_token")) {
+            return;
+        }
+        await page.deleteCookie({name: "access_token", url: process.env.PUBLISHING_ENV_URL});
     }
 
 }

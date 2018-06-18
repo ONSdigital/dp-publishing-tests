@@ -8,13 +8,10 @@ export const loginPageSelectors = {
 export default class LoginPage extends Page {
 
     static async isLoaded() {
-        const isLoaded = await page.$$eval('h1', headings => headings.map(heading => {
-            return heading.innerText;
-        }));
-        return isLoaded.length > 0;
+        return await page.$eval('h1', heading => heading.textContent === 'Login');
     }
 
-    static async goto() {
+    static async load() {
         await super.goto("/login").catch(error => {
             console.error("Error navigating to login page\n", error);
         });
