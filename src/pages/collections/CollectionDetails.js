@@ -1,4 +1,3 @@
-import Zebedee from "../../../clients/Zebedee";
 import Page from "../Page";
 
 export default class CollectionDetails extends Page {

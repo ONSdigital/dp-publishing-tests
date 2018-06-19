@@ -1,16 +1,24 @@
+import expectPuppeteer from 'expect-puppeteer';
+
 import Zebedee from "../../../clients/Zebedee";
 import Page from "../Page";
 import Log from "../../utilities/Log";
 
 let createdCollectionIDs = [];
 
+export const collectionsPageSelectors = {
+    createForm: "form",
+    manualPublish: "#manual-radio",
+    scheduledPublish: "#scheduled-radio",
+    scheduledPublishTypes: 'input[name="schedule-type"]',
+    createCollectionButton: 'form button[type="submit"]'
+};
+
 export default class CollectionsPage extends Page {
 
     static async isLoaded() {
-        const isLoaded = await page.$$eval('h1', headings => headings.map(heading => {
-            return heading.innerText;
-        }));
-        return isLoaded.length > 0;
+        const headings = await page.$$eval('h1', headings => headings.map(heading => heading.textContent));
+        return headings[0] === 'Select a collection' && headings[1] === 'Create a collection';
     }
 
     static async waitForLoad() {
@@ -21,6 +29,39 @@ export default class CollectionsPage extends Page {
         await super.goto("/collections").catch(error => {
             console.error("Error navigating to collections page\n", error);
         });
+    }
+
+    static async fillCreateCollectionForm(collectionData) {
+        await expectPuppeteer(page).toFillForm(collectionsPageSelectors.createForm, {
+            'collection-name': collectionData.name
+        });
+
+        if (collectionData.releaseType === "manual") {
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.manualPublish);
+        }
+        if (collectionData.releaseType === "scheduled") {
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.manualPublish);
+        }
+    }
+    
+    static async submitCreateCollectionForm() {
+        await page.setRequestInterception(true);
+        page.on('request', request => {
+            const isFetch = request.resourceType() === "xhr";
+            
+            if (isFetch) {
+                console.log(request);
+            }
+            
+            request.continue();
+
+            // await page.setRequestInterception(false);
+            // if (request.resourceType() === 'image')
+            //   request.abort();
+            // else
+            //   request.continue();
+        });
+        await expectPuppeteer(page).toClick(collectionsPageSelectors.createCollectionButton);
     }
 
     static async getActiveCollectionIDs() {
@@ -92,6 +133,5 @@ export default class CollectionsPage extends Page {
 
         const deletedCalendarEntryCollection = await Zebedee.deleteTestCalendarEntry();
         await Zebedee.deleteCollection(deletedCalendarEntryCollection.id);
-        
     }
 }

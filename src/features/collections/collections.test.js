@@ -1,4 +1,3 @@
-import expectPuppeteer from 'expect-puppeteer';
 import CollectionsPage from '../../pages/collections/CollectionsPage';
 import LoginPage from '../../pages/login/LoginPage';
 
