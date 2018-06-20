@@ -1,7 +1,7 @@
 import expectPuppeteer from 'expect-puppeteer';
 import CollectionsPage, { collectionsPageSelectors } from '../../pages/collections/CollectionsPage';
 
-describe.skip("Collections screen", () => {
+describe("Collections screen", () => {
     
     beforeAll(async () => {
         await CollectionsPage.initialise();
@@ -12,7 +12,7 @@ describe.skip("Collections screen", () => {
         await CollectionsPage.waitForLoad();
     });
     
-    it("create a manually published collection", async () => {
+    it.only("create a manually published collection", async () => {
         await CollectionsPage.fillCreateCollectionForm({
             name: "Acceptance test - created manual collection",
             releaseType: "manual",
@@ -28,6 +28,7 @@ describe.skip("Collections screen", () => {
         }
 
         await CollectionsPage.submitCreateCollectionForm();
+
     });
 
     // TODO scheduling by date

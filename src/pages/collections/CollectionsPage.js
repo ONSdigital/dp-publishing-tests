@@ -46,20 +46,9 @@ export default class CollectionsPage extends Page {
     
     static async submitCreateCollectionForm() {
         await page.setRequestInterception(true);
-        page.on('request', request => {
-            const isFetch = request.resourceType() === "xhr";
-            
-            if (isFetch) {
-                console.log(request);
-            }
-            
-            request.continue();
-
-            // await page.setRequestInterception(false);
-            // if (request.resourceType() === 'image')
-            //   request.abort();
-            // else
-            //   request.continue();
+        // let response;
+        page.on('response', res => {
+            console.log(res);
         });
         await expectPuppeteer(page).toClick(collectionsPageSelectors.createCollectionButton);
     }
@@ -125,6 +114,7 @@ export default class CollectionsPage extends Page {
     }
 
     static async cleanupCollectionsList() {
+        console.log("Collections created during tests: " + JSON.stringify(createdCollectionIDs));
         await Promise.all(createdCollectionIDs.map(async collectionID => await Zebedee.deleteCollection(collectionID)))
             .catch(error => {
                 Log.error(error);

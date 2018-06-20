@@ -5,7 +5,7 @@ const skipSetup = process.env.SKIP_SETUP_TEARDOWN !== 'false' || false;
 
 module.exports = async function globalSetup() {
     if (!skipSetup) {
-        console.log("\nSetting up...");
+        console.log("\nSetting up...");        
         await Zebedee.initialise();
     }
     await setupPuppeteer();

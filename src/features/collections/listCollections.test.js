@@ -36,11 +36,15 @@ let allCollections = [];
 describe("List of collections", () => {
 
     beforeAll(async () => {
-        await CollectionsPage.initialise();
-        await CollectionsPage.setupCollectionsList(tempCollectionsData);
-        await CollectionsPage.load();
-        await CollectionsPage.waitForLoad();
-        allCollections = await CollectionsPage.getAllCollectionsInList();
+        try {
+            await CollectionsPage.initialise();
+            await CollectionsPage.setupCollectionsList(tempCollectionsData);
+            await CollectionsPage.load();
+            await CollectionsPage.waitForLoad();
+            allCollections = await CollectionsPage.getAllCollectionsInList();
+        } catch (error) {
+            console.error("List of collections setup failed\n", error);
+        }
     });
 
     afterAll(async () => {
