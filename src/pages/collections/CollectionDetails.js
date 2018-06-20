@@ -20,4 +20,8 @@ export default class CollectionDetails extends Page {
         });
         await super.screenshot("collection-details");
     }
+
+    static async getElement() {
+        return await page.$('.drawer');
+    }
 }

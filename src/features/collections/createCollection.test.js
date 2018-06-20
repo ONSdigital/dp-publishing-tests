@@ -1,10 +1,16 @@
 import expectPuppeteer from 'expect-puppeteer';
+
 import CollectionsPage, { collectionsPageSelectors } from '../../pages/collections/CollectionsPage';
+import CollectionDetails from '../../pages/collections/CollectionDetails';
 
 describe("Collections screen", () => {
     
     beforeAll(async () => {
         await CollectionsPage.initialise();
+    });
+    
+    afterAll(async () => {
+        await CollectionsPage.cleanupCreatedCollections();
     });
 
     beforeEach(async () => {
@@ -12,7 +18,7 @@ describe("Collections screen", () => {
         await CollectionsPage.waitForLoad();
     });
     
-    it.only("create a manually published collection", async () => {
+    it("create a manually published collection", async () => {
         await CollectionsPage.fillCreateCollectionForm({
             name: "Acceptance test - created manual collection",
             releaseType: "manual",
@@ -27,8 +33,14 @@ describe("Collections screen", () => {
             expect(error).toEqual(expectedError);
         }
 
-        await CollectionsPage.submitCreateCollectionForm();
+        const newCollection = await CollectionsPage.submitCreateCollectionForm();
+        CollectionsPage.addCreatedCollectionID(newCollection.id);
 
+        await CollectionDetails.waitForLoad();
+        
+        const collectionDetails = await CollectionDetails.getElement();
+        await expectPuppeteer(collectionDetails).toMatch("Acceptance test - created manual collection");
+        await expectPuppeteer(collectionDetails).toMatch("Manual publish");
     });
 
     // TODO scheduling by date

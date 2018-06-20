@@ -38,7 +38,10 @@ describe("List of collections", () => {
     beforeAll(async () => {
         try {
             await CollectionsPage.initialise();
+
+            console.log("Automatically creating collections");
             await CollectionsPage.setupCollectionsList(tempCollectionsData);
+            
             await CollectionsPage.load();
             await CollectionsPage.waitForLoad();
             allCollections = await CollectionsPage.getAllCollectionsInList();
@@ -49,6 +52,7 @@ describe("List of collections", () => {
 
     afterAll(async () => {
         try {
+            console.log("Cleaning up automatically created collections");
             await CollectionsPage.cleanupCollectionsList();
         } catch (error) {
             console.error("Post collections list test cleanup failed", error);

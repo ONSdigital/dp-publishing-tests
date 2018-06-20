@@ -6,11 +6,21 @@ const florenceURL = process.env.PUBLISHING_ENV_URL + "/florence";
 export default class Page {
     
     static async initialise(doNotLogin) {
-        page = await browser.newPage("");
+        // await page.setRequestInterception(true);
+        // page.on('response', res => {
+        //     console.log("WHAT?!");
+        // });
+        // page.on('requestfinished', req => {
+        //     console.log("FINISHED!");
+        //     console.log(req.url());
+        //     // console.log(req.response());
+        //     console.log(req.resourceType());
+        // });
+
+
+        jest.setTimeout(10000);
+        // page = await browser.newPage("");
         await page.setViewport({width: 1920, height: 979});
-        if (process.env.DEBUG && process.env.DEBUG !== 'false') {
-            page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-        }
 
         if (doNotLogin) {
             await this.revokeAuthentication();

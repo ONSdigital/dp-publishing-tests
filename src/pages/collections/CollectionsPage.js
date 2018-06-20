@@ -1,4 +1,5 @@
 import expectPuppeteer from 'expect-puppeteer';
+import interval from 'interval-promise';
 
 import Zebedee from "../../../clients/Zebedee";
 import Page from "../Page";
@@ -45,12 +46,38 @@ export default class CollectionsPage extends Page {
     }
     
     static async submitCreateCollectionForm() {
-        await page.setRequestInterception(true);
-        // let response;
-        page.on('response', res => {
-            console.log(res);
-        });
+        let completedZebedeeRequest;
+        let requestErrored = false;
+        const handleResponse = async request => {
+            if (request.url() !== `${process.env.PUBLISHING_ENV_URL}/zebedee/collection`) {
+                return;
+            }
+
+            const response = request.response();
+            if (!response.ok()) {
+                requestErrored = true;
+                throw Error(`Error when submit created collection - ${response.status()}: ${await response.text()}`);
+            }
+            const json = await response.json();
+            completedZebedeeRequest = json;
+        };
+        page.on('requestfinished', handleResponse);
         await expectPuppeteer(page).toClick(collectionsPageSelectors.createCollectionButton);
+        
+        
+        let createdCollection;
+        await interval(async (_, stop) => {
+            createdCollection = completedZebedeeRequest;
+            if (createdCollection || requestErrored) {
+                stop();
+            }
+        }, 500, {iterations: 15});
+
+        if (!createdCollection) {
+            throw Error('Unexpected error from API for creating a collection from form submit');
+        }
+
+        return createdCollection;
     }
 
     static async getActiveCollectionIDs() {
@@ -87,6 +114,10 @@ export default class CollectionsPage extends Page {
         return collections;
     }
 
+    static addCreatedCollectionID(ID) {
+        createdCollectionIDs.push(ID)
+    }
+
     static getCreatedCollectionIDs() {
         return createdCollectionIDs;
     }
@@ -113,14 +144,17 @@ export default class CollectionsPage extends Page {
         return collection;
     }
 
-    static async cleanupCollectionsList() {
-        console.log("Collections created during tests: " + JSON.stringify(createdCollectionIDs));
+    static async cleanupCreatedCollections() {
+        console.log(`Collections to be cleaned up:\n${createdCollectionIDs.join('\n')}`)
         await Promise.all(createdCollectionIDs.map(async collectionID => await Zebedee.deleteCollection(collectionID)))
             .catch(error => {
                 Log.error(error);
                 throw error;
             });
+    }
 
+    static async cleanupCollectionsList() {
+        await this.cleanupCreatedCollections();
         const deletedCalendarEntryCollection = await Zebedee.deleteTestCalendarEntry();
         await Zebedee.deleteCollection(deletedCalendarEntryCollection.id);
     }
