@@ -1,4 +1,5 @@
 import expectPuppeteer from 'expect-puppeteer';
+import interval from 'interval-promise';
 
 import Zebedee from "../../../clients/Zebedee";
 import Page from "../Page";
@@ -11,6 +12,8 @@ export const collectionsPageSelectors = {
     manualPublish: "#manual-radio",
     scheduledPublish: "#scheduled-radio",
     scheduledPublishTypes: 'input[name="schedule-type"]',
+    scheduledByDate: '#custom-radio',
+    scheduledByCalendarEntry: '#calendar-radio',
     createCollectionButton: 'form button[type="submit"]'
 };
 
@@ -39,29 +42,59 @@ export default class CollectionsPage extends Page {
         if (collectionData.releaseType === "manual") {
             await expectPuppeteer(page).toClick(collectionsPageSelectors.manualPublish);
         }
+
         if (collectionData.releaseType === "scheduled") {
-            await expectPuppeteer(page).toClick(collectionsPageSelectors.manualPublish);
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.scheduledPublish);
+        }
+        
+        if (collectionData.scheduledBy === "date" && collectionData.publishDate) {
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.scheduledByDate);
+            await expectPuppeteer(page).toFillForm(collectionsPageSelectors.createForm, {
+                'publish-date': collectionData.publishDate,
+                'publish-time': collectionData.publishTime
+            });
+        }
+        
+        if (collectionData.scheduledBy === "calendar-entry") {
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.scheduledByCalendarEntry);
         }
     }
     
     static async submitCreateCollectionForm() {
-        await page.setRequestInterception(true);
-        page.on('request', request => {
-            const isFetch = request.resourceType() === "xhr";
-            
-            if (isFetch) {
-                console.log(request);
+        let completedZebedeeRequest;
+        let requestErrored = false;
+        const handleResponse = async request => {
+            if (request.url() !== `${process.env.PUBLISHING_ENV_URL}/zebedee/collection`) {
+                return;
             }
-            
-            request.continue();
 
-            // await page.setRequestInterception(false);
-            // if (request.resourceType() === 'image')
-            //   request.abort();
-            // else
-            //   request.continue();
-        });
+            const response = request.response();
+            if (!response.ok()) {
+                requestErrored = true;
+                throw Error(`Error when submit created collection - ${response.status()}: ${await response.text()}`);
+            }
+            const json = await response.json();
+            completedZebedeeRequest = json;
+        };
+        page.on('requestfinished', handleResponse);
         await expectPuppeteer(page).toClick(collectionsPageSelectors.createCollectionButton);
+        
+        
+        let createdCollection;
+        await interval(async (_, stop) => {
+            createdCollection = completedZebedeeRequest;
+            if (createdCollection || requestErrored) {
+                stop();
+            }
+        }, 500, {iterations: 15});
+
+        page.removeListener('requestfinished', handleResponse);
+
+        if (!createdCollection) {
+            throw Error('Unexpected error from API for creating a collection from form submit');
+        }
+
+        return createdCollection;
     }
 
     static async getActiveCollectionIDs() {
@@ -74,10 +107,21 @@ export default class CollectionsPage extends Page {
         return activeCollectionIDs;
     }
 
+
+    static async setupLiveCalendarEntry() {
+        const collection = await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
+        this.addCreatedCollectionID(collection.id);
+    }
+    
+    static async deleteLiveCalendarEntry() {
+        const deletedCalendarEntryCollection = await Zebedee.deleteTestCalendarEntry();
+        await Zebedee.deleteCollection(deletedCalendarEntryCollection.id);
+    }
+
     static async setupCollectionsList(tempCollectionsData) {
         // Create a valid published calendar entry for our 'scheduled by release' collection to use
         // because Zebedee uses it's publish date to set the collection's publish date.
-        await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
+        await this.setupLiveCalendarEntry();
         
         let collections = [];
         // Use for...of so that we can ensure collections are created in the order we want them
@@ -96,6 +140,10 @@ export default class CollectionsPage extends Page {
             ...collections.map(collection => collection.id)
         ];
         return collections;
+    }
+
+    static addCreatedCollectionID(ID) {
+        createdCollectionIDs.push(ID)
     }
 
     static getCreatedCollectionIDs() {
@@ -124,14 +172,22 @@ export default class CollectionsPage extends Page {
         return collection;
     }
 
-    static async cleanupCollectionsList() {
+    static async cleanupCreatedCollections() {
+        if (!createdCollectionIDs || createdCollectionIDs.length === 0) {
+            console.log("No collections to cleanup");
+            return Promise.resolve();
+        }
+
+        console.log(`Collections to be cleaned up:\n${createdCollectionIDs.join('\n')}`)
         await Promise.all(createdCollectionIDs.map(async collectionID => await Zebedee.deleteCollection(collectionID)))
             .catch(error => {
                 Log.error(error);
                 throw error;
             });
+    }
 
-        const deletedCalendarEntryCollection = await Zebedee.deleteTestCalendarEntry();
-        await Zebedee.deleteCollection(deletedCalendarEntryCollection.id);
+    static async cleanupCollectionsList() {
+        await this.cleanupCreatedCollections();
+        await this.deleteLiveCalendarEntry();
     }
 }

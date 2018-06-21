@@ -535,8 +535,9 @@ const Zebedee = class {
         }
 
         if (calendarEntryResponse.ok) {
-            console.warn("Test calendar entry already exists so will be deleted");
-            await this.deleteTestCalendarEntry();
+            console.warn("Test calendar entry already exists");
+            // await this.deleteTestCalendarEntry();
+            return {};
         }
         
         const body = {
@@ -579,9 +580,11 @@ const Zebedee = class {
             throw Error(`Unable to create calendar entry - ${saveResponse.status}: ${saveResponse.statusText}`);
         }
 
-        await this.reviewContentItem("/releases/acceptancetestcalendarentry", collection.id);
-        await this.approveCollection(collection.id);
-        await this.publishCollection(collection.id);
+        const collectionID = collection.id;
+
+        await this.reviewContentItem("/releases/acceptancetestcalendarentry", collectionID);
+        await this.approveCollection(collectionID);
+        await this.publishCollection(collectionID);
 
         const releaseIsLive = async () => {
             const response = await fetch(`${zebedeeURL}/publishedCollections/${collection.id}`, {
@@ -615,7 +618,8 @@ const Zebedee = class {
         }, 1000, {iterations: 7});
 
         if (!isPublished) {
-            throw Error("Test calendar entry hasn't published successfully");
+            console.error(`Test calendar entry '${collectionID}' hasn't published successfully`);
+            return collection;
         }
 
         return collection;

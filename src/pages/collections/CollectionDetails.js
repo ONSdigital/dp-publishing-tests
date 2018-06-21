@@ -20,4 +20,18 @@ export default class CollectionDetails extends Page {
         });
         await super.screenshot("collection-details");
     }
+
+    static async getElement() {
+        return await page.$('.drawer');
+    }
+
+    static async getHeadingData() {
+        const name = await page.$eval('.drawer h2', heading => heading.textContent);
+        const publishDate = await page.$eval('.drawer h2 + p', element => element.textContent);
+
+        return {
+            name,
+            publishDate
+        }
+    }
 }

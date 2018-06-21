@@ -6,11 +6,11 @@ const florenceURL = process.env.PUBLISHING_ENV_URL + "/florence";
 export default class Page {
     
     static async initialise(doNotLogin) {
-        page = await browser.newPage("");
-        await page.setViewport({width: 1920, height: 979});
-        if (process.env.DEBUG && process.env.DEBUG !== 'false') {
-            page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+        if (process.env.DEBUG === 'true' || process.env.DEBUG === 'puppeteer:*') {
+            jest.setTimeout(20000);
         }
+        
+        await page.setViewport({width: 1920, height: 979});
 
         if (doNotLogin) {
             await this.revokeAuthentication();
