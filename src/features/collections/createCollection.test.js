@@ -42,9 +42,52 @@ describe("Collections screen", () => {
         await expectPuppeteer(collectionDetails).toMatch("Acceptance test - created manual collection");
         await expectPuppeteer(collectionDetails).toMatch("Manual publish");
     });
+    
+    it("create a collection scheduled to publish by a date", async () => {
+        await CollectionsPage.fillCreateCollectionForm({
+            name: "Acceptance test - created scheduled-by-date collection",
+            releaseType: "scheduled",
+            scheduledBy: "date",
+            publishDate: "21-08-2020",
+            publishTime: "10:30",
+        });
 
-    // TODO scheduling by date
+        await expectPuppeteer(page).toMatchElement(collectionsPageSelectors.scheduledPublishTypes);
+
+        const newCollection = await CollectionsPage.submitCreateCollectionForm();
+        CollectionsPage.addCreatedCollectionID(newCollection.id);
+
+        await CollectionDetails.waitForLoad();
+        
+        const headingDetails = await CollectionDetails.getHeadingData();
+        expect(headingDetails.name).toBe("Acceptance test - created scheduled-by-date collection");
+        expect(headingDetails.publishDate).toBe("Publish date: Friday, 21 August 2020 10:30AM");
+    });
+    
+    it.skip("create a collection scheduled to publish by a calendar entry", async () => {
+        // await CollectionsPage.fillCreateCollectionForm({
+        //     name: "Acceptance test - created scheduled-by-date collection",
+        //     releaseType: "scheduled",
+        //     scheduledBy: "date",
+        //     publishDate: "21-08-2020",
+        //     publishTime: "10:30",
+        // });
+
+        // await expectPuppeteer(page).toMatchElement(collectionsPageSelectors.scheduledPublishTypes);
+
+        // const newCollection = await CollectionsPage.submitCreateCollectionForm();
+        // CollectionsPage.addCreatedCollectionID(newCollection.id);
+
+        // await CollectionDetails.waitForLoad();
+        
+        // const headingDetails = await CollectionDetails.getHeadingData();
+        // expect(headingDetails.name).toBe("Acceptance test - created scheduled-by-date collection");
+        // expect(headingDetails.publishDate).toBe("Publish date: Friday, 21 August 2020 10:30AM");
+    });
+
     // TODO scheduling by release
     // TODO adding teams to a collection
+    // TODO test defaults input values?
+    // TODO test validation
 
 });

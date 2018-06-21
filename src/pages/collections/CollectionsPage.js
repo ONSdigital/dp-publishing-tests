@@ -12,6 +12,8 @@ export const collectionsPageSelectors = {
     manualPublish: "#manual-radio",
     scheduledPublish: "#scheduled-radio",
     scheduledPublishTypes: 'input[name="schedule-type"]',
+    scheduledByDate: '#custom-radio',
+    scheduledByCalendarEntry: '#calendar-radio',
     createCollectionButton: 'form button[type="submit"]'
 };
 
@@ -40,8 +42,21 @@ export default class CollectionsPage extends Page {
         if (collectionData.releaseType === "manual") {
             await expectPuppeteer(page).toClick(collectionsPageSelectors.manualPublish);
         }
+
         if (collectionData.releaseType === "scheduled") {
-            await expectPuppeteer(page).toClick(collectionsPageSelectors.manualPublish);
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.scheduledPublish);
+        }
+        
+        if (collectionData.scheduledBy === "date" && collectionData.publishDate) {
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.scheduledByDate);
+            await expectPuppeteer(page).toFillForm(collectionsPageSelectors.createForm, {
+                'publish-date': collectionData.publishDate,
+                'publish-time': collectionData.publishTime
+            });
+        }
+        
+        if (collectionData.scheduledBy === "calendar-entry") {
+            await expectPuppeteer(page).toClick(collectionsPageSelectors.scheduledByCalendarEntry);
         }
     }
     
@@ -72,6 +87,8 @@ export default class CollectionsPage extends Page {
                 stop();
             }
         }, 500, {iterations: 15});
+
+        page.removeListener('requestfinished', handleResponse);
 
         if (!createdCollection) {
             throw Error('Unexpected error from API for creating a collection from form submit');
@@ -145,6 +162,11 @@ export default class CollectionsPage extends Page {
     }
 
     static async cleanupCreatedCollections() {
+        if (!createdCollectionIDs || createdCollectionIDs.length === 0) {
+            console.log("No collections to cleanup");
+            return Promise.resolve();
+        }
+
         console.log(`Collections to be cleaned up:\n${createdCollectionIDs.join('\n')}`)
         await Promise.all(createdCollectionIDs.map(async collectionID => await Zebedee.deleteCollection(collectionID)))
             .catch(error => {

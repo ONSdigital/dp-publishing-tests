@@ -6,20 +6,10 @@ const florenceURL = process.env.PUBLISHING_ENV_URL + "/florence";
 export default class Page {
     
     static async initialise(doNotLogin) {
-        // await page.setRequestInterception(true);
-        // page.on('response', res => {
-        //     console.log("WHAT?!");
-        // });
-        // page.on('requestfinished', req => {
-        //     console.log("FINISHED!");
-        //     console.log(req.url());
-        //     // console.log(req.response());
-        //     console.log(req.resourceType());
-        // });
-
-
-        jest.setTimeout(10000);
-        // page = await browser.newPage("");
+        if (process.env.DEBUG === 'true' || process.env.DEBUG === 'puppeteer:*') {
+            jest.setTimeout(20000);
+        }
+        
         await page.setViewport({width: 1920, height: 979});
 
         if (doNotLogin) {
