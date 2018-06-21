@@ -107,10 +107,21 @@ export default class CollectionsPage extends Page {
         return activeCollectionIDs;
     }
 
+
+    static async setupLiveCalendarEntry() {
+        const collection = await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
+        this.addCreatedCollectionID(collection.id);
+    }
+    
+    static async deleteLiveCalendarEntry() {
+        const deletedCalendarEntryCollection = await Zebedee.deleteTestCalendarEntry();
+        await Zebedee.deleteCollection(deletedCalendarEntryCollection.id);
+    }
+
     static async setupCollectionsList(tempCollectionsData) {
         // Create a valid published calendar entry for our 'scheduled by release' collection to use
         // because Zebedee uses it's publish date to set the collection's publish date.
-        await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
+        await this.setupLiveCalendarEntry();
         
         let collections = [];
         // Use for...of so that we can ensure collections are created in the order we want them
@@ -177,7 +188,6 @@ export default class CollectionsPage extends Page {
 
     static async cleanupCollectionsList() {
         await this.cleanupCreatedCollections();
-        const deletedCalendarEntryCollection = await Zebedee.deleteTestCalendarEntry();
-        await Zebedee.deleteCollection(deletedCalendarEntryCollection.id);
+        await this.deleteLiveCalendarEntry();
     }
 }

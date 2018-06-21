@@ -25,4 +25,6 @@ describe("Collections screen", () => {
         expect(await CollectionsPage.currentPath()).toBe("/florence/login?redirect=%2Fflorence%2Fcollections");
     });
 
+    //TODO end-to-end create collection and manual publish
+
 });
