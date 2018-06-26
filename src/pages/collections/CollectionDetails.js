@@ -1,5 +1,9 @@
 import Page from "../Page";
 
+export const collectionDetailsSelectors = {
+    createEditPage: 'a[href^="/florence/workspace?collection="]'
+}
+
 export default class CollectionDetails extends Page {
 
     static async isLoaded(name) {
