@@ -110,7 +110,9 @@ export default class CollectionsPage extends Page {
 
     static async setupLiveCalendarEntry() {
         const collection = await Zebedee.createCalendarEntry("Acceptance test calendar entry", "2020-06-29T08:30:00.000Z");
-        this.addCreatedCollectionID(collection.id);
+        if (collection.id) {
+            this.addCreatedCollectionID(collection.id);
+        }
     }
     
     static async deleteLiveCalendarEntry() {
