@@ -666,6 +666,50 @@ const Zebedee = class {
             throw Error(`Unable to review test calendar entry - ${reviewResponse.status}: ${reviewResponse.statusText}`);
         }
     }
+
+    static async createTeam(teamName) {
+        console.log(`Creating team: '${teamName}'`);
+        const response = await fetch(`${zebedeeURL}/teams/${teamName}`, {
+            method: "POST",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        });
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error creating team: '${teamName}'`);
+        }
+    }
+
+    static async deleteTeam(teamName) {
+        console.log(`Deleting team: '${teamName}'`);
+        const response = await fetch(`${zebedeeURL}/teams/${teamName}`, {
+            method: "DELETE",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        });
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error deleting team: '${teamName}'`);
+        }
+    }
+
+    static async getTeamId(teamName) {
+        const response = await fetch(`${zebedeeURL}/teams/${teamName}`, {
+            method: "GET",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        });
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error deleting team: '${teamName}'`);
+        }
+
+        const json = await response.json();
+        return json.id;
+    }
 }
 
 module.exports = Zebedee;
