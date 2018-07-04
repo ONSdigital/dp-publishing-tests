@@ -15,7 +15,12 @@ export default class CollectionDetails extends Page {
     }
 
     static async waitForLoad() {
-        await page.waitForSelector('.drawer.visible:not(.animatable)');
+        try {
+            await page.waitForSelector(collectionDetailsSelectors.createEditPage);
+        } catch (error) {
+            console.error("Error waiting for collection details to load", error);
+            fail('Error waiting for collection details to load');
+        }
     }
 
     static async load(ID) {       

@@ -13,6 +13,10 @@ export default class CollectionEdit extends Page {
         }
     }
 
+    static async waitForLoad() {
+        return page.waitForSelector('#collection-edit-name');
+    }
+
     static async getInputValue(inputId) {
         return await page.$eval(inputId, input => {
             return input.value;

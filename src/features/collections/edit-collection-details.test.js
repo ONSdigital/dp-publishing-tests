@@ -46,6 +46,7 @@ describe("Editting a collection", () => {
 
     it(`/edit displays the edit pane`, async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
+        await CollectionEdit.waitForLoad();
         const isLoaded = await CollectionEdit.isLoaded();
         expect(isLoaded).toBeTruthy();
     })
@@ -59,7 +60,7 @@ describe("Editting a collection", () => {
 
     it('the correct values are displayed when first displaying edit pane', async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
-        await CollectionEdit.isLoaded();
+        await CollectionEdit.waitForLoad();
         const editName = await CollectionEdit.getInputValue("#collection-edit-name");
         expect(editName).toBe("Acceptance test collection for edit collection test")
         const editTeams = await CollectionEdit.getInputValue("#collection-edit-teams");
@@ -72,7 +73,7 @@ describe("Editting a collection", () => {
 
     it('changes to collection name field show', async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
-        await CollectionEdit.isLoaded();
+        await CollectionEdit.waitForLoad();
         expect(await CollectionEdit.getInputValue("#collection-edit-name")).toBe("Acceptance test collection for edit collection test")
         await expect(page).toFill('input[name="collection-edit-name"]', "New name")
         expect(await CollectionEdit.getInputValue("#collection-edit-name")).toBe("New name")
@@ -80,7 +81,7 @@ describe("Editting a collection", () => {
 
     it('displays empty field validation errors', async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
-        await CollectionEdit.isLoaded();
+        await CollectionEdit.waitForLoad();
         await expect(page).toFill('input[name="collection-edit-name"]', " ")
         await expect(page).toClick('button.btn--positive', {text: "Save and return"});
         const validationMessageVisible = await CollectionEdit.collectionNameValidationErrorVisible('.error-msg');
@@ -89,7 +90,7 @@ describe("Editting a collection", () => {
 
     it('can add and remove a team from a collection', async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
-        await CollectionEdit.isLoaded();
+        await CollectionEdit.waitForLoad();
         expect(await CollectionEdit.collectionHasTeams()).toBeFalsy();
         const teamId = await Zebedee.getTeamId(tempTeams[1].name);
         await CollectionEdit.selectATeam(teamId)
@@ -100,7 +101,7 @@ describe("Editting a collection", () => {
 
     it('clicking schedule radio option triggers schedule options to show', async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
-        await CollectionEdit.isLoaded();
+        await CollectionEdit.waitForLoad();
         await expect(page).toClick('#edit-type-schedule');
         const scheduleOptionsIsVisible = await CollectionEdit.scheduleOptionsAreVisibile('#edit-publish-date')
         expect(scheduleOptionsIsVisible).toBeTruthy();
@@ -108,14 +109,14 @@ describe("Editting a collection", () => {
 
     it('saves changes to collection name and schedule date', async () => {
         await CollectionEdit.goto(`/collections/${testCollection[0].id}/edit`);
-        await CollectionEdit.isLoaded();
+        await CollectionEdit.waitForLoad();
         expect(await CollectionEdit.getInputValue("#collection-edit-name")).toBe("Acceptance test collection for edit collection test")
         await expect(page).toFill('input[name="collection-edit-name"]', "New name")
         expect(await CollectionEdit.getInputValue("#collection-edit-name")).toBe("New name")
         await expect(page).toClick('#edit-type-schedule');
         await expect(page).toFill('input[name="edit-publish-date"]', "28/06/2018")
         await expect(page).toClick('button.btn--positive', {text: "Save and return"});
-        await CollectionDetails.isLoaded();
+        await CollectionDetails.waitForLoad();
         const collectionHeadingDetails = await CollectionDetails.getHeadingData();
         expect(collectionHeadingDetails.name).toBe("New name");
         expect(collectionHeadingDetails.publishDate).toBe("Publish date: Thursday, 28 June 2018 9:30AM");
