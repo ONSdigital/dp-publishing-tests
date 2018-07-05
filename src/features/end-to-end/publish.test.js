@@ -77,8 +77,8 @@ describe("Publishing end-to-end", () => {
 
         // Check that an error message isn't showing, this is because sometime we'll
         // get errors if the same page exists
-        const createPageErrorMsg = await Page.globalErrorMsg();
-        expect(createPageErrorMsg).toBe("");
+        const createPageError = await Page.hasGlobalErrorMsg();
+        expect(createPageError).toBe(false);
 
         await EditPage.waitForLoad();
         await expectPuppeteer(page).toClick(editPageSelectors.submitForReviewButton);

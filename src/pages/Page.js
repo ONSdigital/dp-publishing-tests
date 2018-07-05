@@ -82,12 +82,12 @@ export default class Page {
         await page.deleteCookie({name: "access_token", url: process.env.PUBLISHING_ENV_URL});
     }
 
-    static async globalErrorMsg() {
-        // TODO get this working properly
-        
-        // const errorMsg = await page.$$eval()
-        // const legacyErrorMsg = await 
-        return "";
+    static async hasGlobalErrorMsg() {
+        const errorMsgExists = await page.$$eval('.notifications__item--warning, .sweet-alert.visible', elements => {
+            return elements.length > 0;
+        });
+
+        return errorMsgExists;
     }
 
 }
