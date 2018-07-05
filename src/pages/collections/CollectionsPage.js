@@ -34,6 +34,24 @@ export default class CollectionsPage extends Page {
         });
     }
 
+
+    static async waitForCollectionToDisappear(ID) {
+        const checkCollectionVisibility = async () => {
+            await this.load();
+            await this.waitForLoad();
+            const allCollections = await this.getAllCollectionsInList();
+            const isVisible = allCollections.some(collection => collection.id === ID);
+            return isVisible;
+        }
+
+        await interval(async (_, stop) => {
+            const collectionIsVisible = await checkCollectionVisibility();
+            if (!collectionIsVisible) {
+                stop();
+            }
+        }, 500, {iterations: 20});
+    }
+
     static async fillCreateCollectionForm(collectionData) {
         await expectPuppeteer(page).toFillForm(collectionsPageSelectors.createForm, {
             'collection-name': collectionData.name

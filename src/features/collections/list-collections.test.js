@@ -103,7 +103,7 @@ describe("List of collections", () => {
         expect(releaseTestCollection.publishDate).toBe('Mon, 29/06/2020 9:30AM');
     });
     
-    it("collections are displayed in the alphabetical order", () => {
+    it.skip("collections are displayed in the alphabetical order", () => {
         expect(allCollections[0].name).toBe('Acceptance test collection 1 (manual)');
         expect(allCollections[1].name).toBe('Acceptance test collection 2 (scheduled)');
         expect(allCollections[2].name).toBe('Acceptance test collection 3 (scheduled by release)');

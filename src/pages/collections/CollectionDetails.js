@@ -1,7 +1,10 @@
 import Page from "../Page";
 
 export const collectionDetailsSelectors = {
-    createEditPage: 'a[href^="/florence/workspace?collection="]'
+    createEditPage: 'a[href^="/florence/workspace?collection="]',
+    pageItem: '.page',
+    pageActionButton: '.list__item--expandable.active button',
+    approveCollection: '#approve-collection'
 }
 
 export default class CollectionDetails extends Page {
@@ -42,5 +45,12 @@ export default class CollectionDetails extends Page {
             name,
             publishDate
         }
+    }
+
+    static async getActiveCollectionID() {
+        const path = await page.evaluate(() => {
+            return location.pathname;
+        });
+        return path.split('/').pop();
     }
 }

@@ -56,6 +56,10 @@ const Zebedee = class {
     static getTempAdminUserEmail() {
         return tempAdminUserEmail;
     }
+    
+    static getAdminUserEmail() {
+        return adminCredentials.email;
+    }
 
     static async createTempAdminUser(adminAccessToken) {
         let tempUserAlreadyExists = false;
@@ -462,6 +466,27 @@ const Zebedee = class {
         const json = await response.json();
         return json;
     }
+
+    static async collectionHasPublished(ID) {
+        // For some reason this endpoint always returns an array and an object (which is empty if the collectio isn't published or doesn't exist at all)
+        // even when asking for a single published collection so we check length and object before saying it hasn't been published
+
+        const publishedCollection = await fetch(`${zebedeeURL}/publishedCollections/${ID}`, {
+            headers: {
+                "X-Florence-Token": this.getTempUserAccessToken()
+            },
+        }).then(response => response.json());
+
+        if (!publishedCollection || publishedCollection.length === 0) {
+            return false;
+        }
+
+        if (!publishedCollection[0].id) {
+            return false
+        }
+
+        return true;
+    }
     
     static async publishCollection(ID) {
         const request = accessToken => (
@@ -480,7 +505,6 @@ const Zebedee = class {
 
         let response = await request(this.getAdminAccessToken());
         if (response.status === 401) {
-            // Log.info("Not logged in when attempting to delete collection. Logging in as admin and trying again.")
             this.setAdminAccessToken(await this.loginAsRootAdmin());
             response = await request(this.getAdminAccessToken());
             if (response.status === 401) {
@@ -492,12 +516,31 @@ const Zebedee = class {
             throw Error(`${response.status}: ${response.statusText}`);
         }
 
-        const publishedSuccessfully = await response.text();    
+        const publishedSuccessfully = await response.text(); 
         if (!publishedSuccessfully) {
             throw Error(`Collection '${ID}' failed to publish`);
         }
 
         return publishedSuccessfully;
+    }
+
+    static async deletePublishedPage(URL) {
+        const collection = await this.createCollection({
+            name: "Acceptance test collection - delete published page " + (Math.floor(Math.random() * 1000000000)),
+            type: "manual",
+            teams: [],
+            collectionOwner: "ADMIN"
+        });
+
+        try {
+            await this.addPageDeleteToCollection(URL, collection.id);
+            await this.approveCollection(collection.id);
+            await this.publishCollection(collection.id);
+        } catch (error) {
+            console.error(`Error deleting the published page '${URL}'`, error);
+        }
+
+        return collection;
     }
 
     static async deleteTestCalendarEntry() {

@@ -2,12 +2,15 @@ import Zebedee from '../../clients/Zebedee.js';
 
 const screenshotDir = "./screenshots/";
 const florenceURL = process.env.PUBLISHING_ENV_URL + "/florence";
+const isDebugMode = process.env.DEBUG === 'true' || process.env.DEBUG === 'puppeteer:*';
 
 export default class Page {
     
     static async initialise(doNotLogin) {
-        if (process.env.DEBUG === 'true' || process.env.DEBUG === 'puppeteer:*') {
-            jest.setTimeout(20000);
+        if (isDebugMode) {
+            jest.setTimeout(50000);
+        } else {
+            jest.setTimeout(30000);
         }
         
         await page.setViewport({width: 1920, height: 979});
@@ -77,6 +80,14 @@ export default class Page {
             return;
         }
         await page.deleteCookie({name: "access_token", url: process.env.PUBLISHING_ENV_URL});
+    }
+
+    static async globalErrorMsg() {
+        // TODO get this working properly
+        
+        // const errorMsg = await page.$$eval()
+        // const legacyErrorMsg = await 
+        return "";
     }
 
 }
