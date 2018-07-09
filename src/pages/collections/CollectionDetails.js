@@ -53,4 +53,77 @@ export default class CollectionDetails extends Page {
         });
         return path.split('/').pop();
     }
+    
+    static async waitForDrawerToClose() {
+        try {
+            await page.waitForSelector('.drawer.animatable');
+        } catch (error) {
+            console.error("Error waiting for collection details drawer to close", error);
+            fail('Error waiting for collection details drawer to close');
+        }
+    }
+
+    static async drawerIsVisible() {
+        try {
+            return await page.$eval('.drawer.animatable', _ => {
+                return false;
+            })
+        } catch (error) {
+            return true;
+        }
+    }
+
+    static async setCollectionCookie(collectionID) {
+        console.log(`Setting collection cookie for: ${collectionID}`)
+        await page.setCookie({
+            name: "collection",
+            value: collectionID,
+            url: process.env.PUBLISHING_ENV_URL,
+            session: true
+        });
+    }
+
+    static async deleteButtonIsVisible() {
+        return await page.$$eval('#delete-collection', element => element.length > 0)
+    }
+
+    static async pageOptionsAreVisible() {
+        return await page.waitForSelector('.expandable-item__contents', {
+            visible: true,
+        })
+    }
+
+    static async pageOptionsAreHidden() {
+        return await page.waitForSelector('.expandable-item__contents', {
+            hidden: true,
+        })
+    }
+
+    static async waitForNotification() {
+        try {
+            await page.waitForSelector('li.notifications__item');
+        } catch (error) {
+            console.error("Error waiting for li.notifications__item", error);
+            fail("Error waiting for li.notifications__item");
+        }
+    }
+
+    static async lastEditTextIsCorrect(user, date) {
+        return await page.$eval('.expandable-item__contents p', (element, user, date) => {
+            if (element.innerHTML === `Last edit: ${user} (${date})`) {
+                return true;
+            }
+            return false;
+        }, user, date)
+    }
+
+    static async notificationsAreHidden() {
+        return await page.waitForSelector('li.notifications__item', {
+            hidden: true,
+        })
+    }
+
+    static async collectionExistsInCollectionList(collectionID) {
+        return await page.$$eval(`#${collectionID}`, element => element.length > 0)
+    }
 }

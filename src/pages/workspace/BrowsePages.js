@@ -22,7 +22,7 @@ export default class BrowsePages extends Page {
         // due to timeouts
         try {
             await page.waitForSelector('.workspace-browse .page-list');
-            await super.screenshot("browse-pages");
+            // await super.screenshot("browse-pages");
         } catch (error) {
             console.error("Error waiting for browse screen to load", error);
             fail("Failed waiting for browse screen to load");

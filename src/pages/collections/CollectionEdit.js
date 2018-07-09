@@ -5,8 +5,8 @@ export default class CollectionEdit extends Page {
 
     static async isLoaded() {
         try {
-            return await page.$eval('#editing-text', (p) => {
-                return p.textContent === "Editing collection...";
+            return await page.$eval('#collection-edit-name', _ => {
+                return true;
             });
         } catch (err) {
             return false;

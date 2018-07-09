@@ -710,6 +710,41 @@ const Zebedee = class {
         }
     }
 
+    static async createPage(collectionID, page) {
+        console.log(`Creating page: ${page.description.title} at: ${page.uri}`)
+        const response = await fetch(`${zebedeeURL}/content/${collectionID}?uri=${page.uri}/data.json&overwriteExisting=false&recursive=false`, {
+            method: "POST",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            },
+            body: JSON.stringify(page)
+        })
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error creating page: '${page.description.title}'`);
+        }
+
+        return {...page, pageCreationDate: new Date()};
+    }
+
+    static async deletePage(collectionID, page) {
+        console.log(`Deleting page: ${page.description.title} at: ${page.uri}`)
+        const response = await fetch(`${zebedeeURL}/content/${collectionID}?uri=${page.uri}/data.json`, {
+            method: "DELETE",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            },
+        })
+
+        if (response.status === 404);
+            console.warn(`Page ${page.description.title} doesn't exist, cancelling delete`);
+            return;
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error deleting page: '${page.description.title}'`);
+        }
+    }
+
     static async createTeam(teamName) {
         console.log(`Creating team: '${teamName}'`);
         const response = await fetch(`${zebedeeURL}/teams/${teamName}`, {
@@ -753,6 +788,28 @@ const Zebedee = class {
         const json = await response.json();
         return json.id;
     }
+
+    static async collectionExists(collectionID) {
+        const response = await fetch(`${zebedeeURL}/collections`, {
+            method: "GET",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        });
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error deleting team: '${teamName}'`);
+        }
+
+        const json = await response.json();
+        return json.find(collection => {
+            return collection.id === collectionID;
+        });
+
+        //return collection ? true : false;
+
+    }
+
 }
 
 module.exports = Zebedee;

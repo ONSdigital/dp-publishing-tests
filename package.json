@@ -23,5 +23,8 @@
     "node-fetch": "^2.1.2",
     "puppeteer": "^1.4.0",
     "signale": "^1.1.0"
+  },
+  "devDependencies": {
+    "dateformat": "^3.0.3"
   }
 }
