@@ -86,6 +86,7 @@ describe("Creating a new collection", () => {
         await expectPuppeteer(page).toMatchElement('h1.modal__title');
         await expectPuppeteer(page).toFill('#search-releases', 'Acceptance test');
         await expectPuppeteer(page).toClick('.selectable-box__item div', {text: "Acceptance test calendar entry"});
+        await expectPuppeteer(page).toClick('button', {text: "Submit"});
         
         try {
             await expectPuppeteer(page).toMatchElement('.modal__inner');
