@@ -180,7 +180,7 @@ describe("Viewing collection details", () => {
         await CollectionsPage.waitForLoad();
         expect(await CollectionsPage.currentPath()).toBe('/florence/collections');
         await CollectionDetails.waitForNotification();
-        expect(await expectPuppeteer(page).toMatchElement('.notifications__item', { text: `Successfully deleted collection '${testCollections[1].id}'` }));
+        expect(await expectPuppeteer(page).toMatchElement('.notifications__item', { text: `Collection deleted` }));
         const collectionExists = await Zebedee.collectionExists(testCollections[1].id);
         expect(collectionExists).toBeFalsy() 
         const collectionExistsInCollectionList = await CollectionDetails.collectionExistsInCollectionList(testCollections[1].i);
