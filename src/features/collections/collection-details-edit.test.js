@@ -29,14 +29,14 @@ describe("Editting a collection", () => {
         await CollectionsPage.initialise();
         console.log("Automatically creating test collection");
         testCollection = await CollectionsPage.setupCollectionsList(tempCollectionData);
-        Zebedee.createTeam(tempTeams[0].name);
-        Zebedee.createTeam(tempTeams[1].name);
+        await Zebedee.createTeam(tempTeams[0].name);
+        await Zebedee.createTeam(tempTeams[1].name);
     });
 
     afterAll(async () => {
+        await Zebedee.deleteTeam(tempTeams[0].name);
+        await Zebedee.deleteTeam(tempTeams[1].name);
         await CollectionsPage.cleanupCreatedCollections();
-        Zebedee.deleteTeam(tempTeams[0].name);
-        Zebedee.deleteTeam(tempTeams[1].name);
     });
 
     beforeEach(async () => {
