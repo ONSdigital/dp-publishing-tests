@@ -183,7 +183,7 @@ describe("Viewing collection details", () => {
         expect(await expectPuppeteer(page).toMatchElement('.notifications__item', { text: `Collection deleted` }));
         const collectionExists = await Zebedee.collectionExists(testCollections[1].id);
         expect(collectionExists).toBeFalsy() 
-        const collectionExistsInCollectionList = await CollectionDetails.collectionExistsInCollectionList(testCollections[1].i);
-        expect(collectionExistsInCollectionList).toBeFalsy() 
+        const collectionExistsInCollectionList = await CollectionDetails.collectionExistsInCollectionList(testCollections[1].id);
+        expect(collectionExistsInCollectionList).toBeFalsy()
     })
 })
