@@ -736,9 +736,10 @@ const Zebedee = class {
             },
         })
 
-        if (response.status === 404);
+        if (response.status === 404) {
             console.warn(`Page ${page.description.title} doesn't exist, cancelling delete`);
             return;
+        }
 
         if (!response.ok) {
             throw Error(`${response.status}: Error deleting page: '${page.description.title}'`);
@@ -805,8 +806,6 @@ const Zebedee = class {
         return json.find(collection => {
             return collection.id === collectionID;
         });
-
-        //return collection ? true : false;
 
     }
 
