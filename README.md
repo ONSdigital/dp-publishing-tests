@@ -7,6 +7,11 @@ Acceptance tests for the publishing platform for [ons.gov.uk](https://www.ons.go
 
 You'll either need access to an environment with the publishing platform running or you'll need to run the [publishing platform locally](https://github.com/ONSdigital/dp/blob/master/GETTING_STARTED.md#publishing).
 
+Before running anything against an environmen you'll need to run the command
+```
+npm install
+```
+
 There are a few options on how the tests can be run:
 
 ### On an environment
