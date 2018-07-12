@@ -39,6 +39,7 @@ The following environment variables are available when running the tests:
 | ROOT_ADMIN_EMAIL     | "florence@magicroundabout.ons.gov.uk"         | Email address of the existing admin account that will be used to create temporary users during tests                                               |
 | PUBLISHING_ENV_URL      | "https://publishing.develop.onsdigital.co.uk" | URL for the environment to run the test suite on                                                                                                   |
 | DEBUG                | false                                         | If `true` it runs the tests in developer mode, so it doesn't run headlessly, it slows down actions and pipe's the browsers console to the terminal |
+| HEADLESS             | true                                          | If `false` it opens the browser, so that all actions taken during the tests can be seen                                                            |
 | SKIP_SETUP_TEARDOWN  | false                                         | If `true` then the global setup and teardown won't run with the test suite                                                                        |
 
 
