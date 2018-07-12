@@ -9,7 +9,7 @@ You'll either need access to an environment with the publishing platform running
 
 Before running anything against an environmen you'll need to run the command
 ```
-npm install
+make install
 ```
 
 There are a few options on how the tests can be run:
