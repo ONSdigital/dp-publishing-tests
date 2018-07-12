@@ -23,7 +23,7 @@ const tempTeams = [
 
 let testCollection = []
 
-describe("Editting a collection", () => {
+describe("Editing a collection", () => {
 
     beforeAll(async () => {
         await CollectionsPage.initialise();
