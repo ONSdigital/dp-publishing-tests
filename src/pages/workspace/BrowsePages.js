@@ -21,6 +21,10 @@ export default class BrowsePages extends Page {
         // this code might be a place to start for unexpected failures
         // due to timeouts
         try {
+            await Promise.race([
+                page.waitForNavigation({waitUntil: 'load'}),
+                page.waitForNavigation({waitUntil: 'networkidle0'})
+            ]);
             await page.waitForSelector('.workspace-browse .page-list');
             // await super.screenshot("browse-pages");
         } catch (error) {
