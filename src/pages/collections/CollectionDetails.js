@@ -1,7 +1,7 @@
 import Page from "../Page";
 
 export const collectionDetailsSelectors = {
-    createEditPage: 'a[href^="/florence/workspace?collection="]',
+    createEditPageButton: 'a[href^="/florence/workspace?collection="]',
     pageItem: '.page',
     pageActionButton: '.list__item--expandable.active button',
     approveCollection: '#approve-collection'
@@ -19,7 +19,7 @@ export default class CollectionDetails extends Page {
 
     static async waitForLoad() {
         try {
-            await page.waitForSelector(collectionDetailsSelectors.createEditPage);
+            await page.waitForXPath(`//*[contains(@class, "drawer__heading")]//a[contains(text(),'Edit')]`);
         } catch (error) {
             console.error("Error waiting for collection details to load", error);
             fail('Error waiting for collection details to load');
