@@ -7,6 +7,29 @@ const isDebugMode = process.env.DEBUG === 'true' || process.env.DEBUG === 'puppe
 export default class Page {
     
     static async initialise(doNotLogin) {
+        if (isDebugMode || process.env.SHOW_PAGE_LOGS === 'true') {
+            page.on('console', msg => {
+                console.log(`Page log (${msg._type}) [${new Date().toLocaleString()}]:`, msg._text);
+            });
+            page.on('response', async response => {
+                const req = response.request();
+                let body;
+                if (req.resourceType() === 'fetch' || req.resourceType() === 'xhr' || req.resourceType() === 'other') {
+                    try {
+                        body = await response.json();
+                    } catch (error) {
+                        try {
+                            body = await response.text();
+                        } catch (error) {
+                            console.error(`Error trying to parse response body to JSON or text`, error);
+                            body = "Unable to parse response body";
+                        }
+                    }
+                    console.log(`Network fetch log [${new Date().toLocaleString()}]:\n`, `${req.method()}\n`, `${response.status()}\n`, `${req.url()}\n`, body);
+                }
+            });
+        }
+
         if (isDebugMode) {
             jest.setTimeout(50000);
         } else {
@@ -89,5 +112,4 @@ export default class Page {
 
         return errorMsgExists;
     }
-
 }
