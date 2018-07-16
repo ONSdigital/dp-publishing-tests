@@ -172,6 +172,7 @@ export default class CollectionsPage extends Page {
 
     static async getAllCollectionsInList() {
         const collections = await page.$$('.selectable-box__item');
+        console.log(collections.length);
         const collectionDetails = await Promise.all(collections.map(async collection => {
             const collectionIDPromise = await collection.getProperty('id');
             const collectionID = await collectionIDPromise.jsonValue();

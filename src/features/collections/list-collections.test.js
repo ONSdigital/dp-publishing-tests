@@ -3,6 +3,7 @@ import expectPuppeteer from 'expect-puppeteer';
 import CollectionsPage from "../../pages/collections/CollectionsPage";
 import CollectionDetails from '../../pages/collections/CollectionDetails';
 import LoginPage from '../../pages/login/LoginPage';
+import Page from '../../pages/Page';
 
 const tempCollectionsData = [
     {
@@ -32,6 +33,7 @@ const tempCollectionsData = [
 ];
 
 let allCollections = [];
+let createdCollections = [];
 
 describe("List of collections", () => {
 
@@ -40,9 +42,10 @@ describe("List of collections", () => {
             await CollectionsPage.initialise();
 
             console.log("Automatically creating collections");
-            await CollectionsPage.setupCollectionsList(tempCollectionsData);
+            createdCollections = await CollectionsPage.setupCollectionsList(tempCollectionsData);
             
             await CollectionsPage.load();
+            await Page.waitForRequestResponse("/zebedee/collections", "GET");
             await CollectionsPage.waitForLoad();
             allCollections = await CollectionsPage.getAllCollectionsInList();
         } catch (error) {
@@ -67,7 +70,7 @@ describe("List of collections", () => {
 
     it("redirects to the login screen if not logged in [smoke]", async () => {
         await CollectionsPage.revokeAuthentication();
-        await CollectionsPage.goto(`/collections/${allCollections[2].id}`);
+        await CollectionsPage.goto(`/collections/arandomcollectionid-12345`);
         expect(await LoginPage.isLoaded());
 
         // reset authentication to default state
@@ -76,14 +79,14 @@ describe("List of collections", () => {
     
     it("redirect to the login screen includes parameter for subsequent redirect to this collection's path [smoke]", async () => {
         await CollectionsPage.revokeAuthentication();
-        await CollectionsPage.goto(`/collections/${allCollections[2].id}`);
-        expect(await CollectionsPage.currentPath()).toBe(`/florence/login?redirect=%2Fflorence%2Fcollections%2F${allCollections[2].id}`);
+        await CollectionsPage.goto(`/collections/arandomcollectionid-12345`);
+        expect(await CollectionsPage.currentPath()).toBe(`/florence/login?redirect=%2Fflorence%2Fcollections%2Farandomcollectionid-12345`);
 
         // reset authentication to default state
         await CollectionsPage.initialise();
     });
 
-    it("displays the collection names and publish dates", async () => {        
+    it("displays the collection names and publish dates", async () => {   
         const manualTestCollection = allCollections.find(collection => {
             return collection.name === 'Acceptance test collection 1 (manual)';
         });
@@ -110,16 +113,16 @@ describe("List of collections", () => {
     });
 
     it("shows a collection item as active when clicked", async () => {
-        await expectPuppeteer(page).toClick(`#${allCollections[0].id}`);
+        await expectPuppeteer(page).toClick(`#${createdCollections[0].id}`);
 
         let activeCollectionIDs = await CollectionsPage.getActiveCollectionIDs();
         expect(activeCollectionIDs.length).toBe(1);
-        expect(activeCollectionIDs[0] === allCollections[0].id).toBe(true);
+        expect(activeCollectionIDs[0] === createdCollections[0].id).toBe(true);
 
-        await expectPuppeteer(page).toClick(`#${allCollections[1].id}`);
+        await expectPuppeteer(page).toClick(`#${createdCollections[1].id}`);
         activeCollectionIDs = await CollectionsPage.getActiveCollectionIDs();
         expect(activeCollectionIDs.length).toBe(1);
-        expect(activeCollectionIDs[0] === allCollections[1].id).toBe(true);
+        expect(activeCollectionIDs[0] === createdCollections[1].id).toBe(true);
     });
     
     it("updates the URL correctly when a collection is clicked", async () => {
@@ -129,17 +132,17 @@ describe("List of collections", () => {
         // they're completed. Otherwise we risk our test intermittently failing because 
         // the URL hasn't been put into the history API yet when we run expect()
         const navigationPromise = page.waitForNavigation();
-        await expectPuppeteer(page).toClick(`#${allCollections[0].id}`);
+        await expectPuppeteer(page).toClick(`#${createdCollections[0].id}`);
         await navigationPromise;
 
-        expect(await CollectionsPage.currentPath()).toBe(`/florence/collections/${allCollections[0].id}`);
+        expect(await CollectionsPage.currentPath()).toBe(`/florence/collections/${createdCollections[0].id}`);
     });
     
     it("displays the collection details drawer when a collection is clicked", async () => {
         expect(await CollectionsPage.currentPath()).toBe('/florence/collections');
-        await expectPuppeteer(page).toClick(`#${allCollections[1].id}`);
+        await expectPuppeteer(page).toClick(`#${createdCollections[1].id}`);
         await CollectionDetails.waitForLoad();
-        const isLoaded = await CollectionDetails.isLoaded(allCollections[1].name);
+        const isLoaded = await CollectionDetails.isLoaded(createdCollections[1].name);
         expect(isLoaded).toBe(true);
     });
 
