@@ -8,8 +8,9 @@ export default class Page {
     
     static async initialise(doNotLogin) {
         if (isDebugMode || process.env.SHOW_PAGE_LOGS === 'true') {
-            page.on('console', msg => {
-                console.log(`Page log (${msg._type}) [${new Date().toLocaleString()}]:`, msg._text);
+            page.on('console', async msg => {
+                const jsonArgs = await Promise.all(msg._args.map(arg => arg.jsonValue()));
+                console.log(`Page log (level: '${msg._type}') [${new Date().toString()}]:`, ...jsonArgs);
             });
             page.on('response', async response => {
                 const req = response.request();
@@ -25,7 +26,7 @@ export default class Page {
                             body = "Unable to parse response body";
                         }
                     }
-                    console.log(`Network fetch log [${new Date().toLocaleString()}]:\n`, `${req.method()}\n`, `${response.status()}\n`, `${req.url()}\n`, body);
+                    console.log(`Network fetch log [${new Date().toString()}]:\n`, `${req.method()}\n`, `${response.status()}\n`, `${req.url()}\n`, body);
                 }
             });
         }
@@ -111,5 +112,70 @@ export default class Page {
         });
 
         return errorMsgExists;
+    }
+
+    static async waitForNotification() {
+        try {
+            await page.waitForSelector('li.notifications__item');
+
+            // We wait until the animation has ended on the notification item.
+            // We use a promise so that we can wait until the transitionend event is fired
+            // before continuing with the rest of the test (or else it'll fail on slower machines)
+            await page.$eval('li.notifications__item', element => {
+                return new Promise((resolve, reject) => {
+                    const rejectTimer = setTimeout(() => {
+                        reject("Notification transitionend event not fired within 5 seconds");
+                    }, 5000);
+                    element.addEventListener('transitionend', () => {
+                        console.log("Notification displayed");
+                        clearTimeout(rejectTimer);
+                        resolve();
+                    });
+                })
+            });
+        } catch (error) {
+            console.error("Error waiting for notification to show", error);
+            fail("Error waiting for notification to show");
+        }
+    }
+
+    static async lastEditTextIsCorrect(user, date) {
+        return await page.$eval('.expandable-item__contents p', (element, user, date) => {
+            if (element.innerHTML === `Last edit: ${user} (${date})`) {
+                return true;
+            }
+            return false;
+        }, user, date)
+    }
+
+    static async notificationsAreHidden() {
+        return await page.waitForSelector('li.notifications__item', {
+            hidden: true,
+        })
+    }
+
+    static async waitForRequestResponse(URL, method = "GET") {
+        if (URL.startsWith("/")) {
+            URL = `${process.env.PUBLISHING_ENV_URL}${URL}`;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const handleResponse = async response => {
+                const req = response.request();
+                if (req.url() === URL && req.method() === method) {
+                    page.removeListener('response', handleResponse);
+                    clearTimeout(failureTimer);
+                    resolve();
+                }
+            };
+
+            const failureTimer = setTimeout(() => {
+                page.removeListener('response', handleResponse);
+                fail(`Timed out (10000ms) waiting for response from ${method} request to URL '${URL}'`);
+                reject();
+            }, 10000);
+
+            page.on('response', handleResponse);
+        })
     }
 }

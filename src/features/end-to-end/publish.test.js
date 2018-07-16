@@ -38,7 +38,7 @@ describe("Publishing end-to-end", () => {
         CollectionsPage.addCreatedCollectionID(newCollection.id);
         
         await CollectionDetails.waitForLoad();
-        await expectPuppeteer(page).toClick(collectionDetailsSelectors.createEditPage);
+        await expectPuppeteer(page).toClick(collectionDetailsSelectors.createEditPageButton);
         
         await BrowsePages.waitForLoad();
 

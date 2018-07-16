@@ -8,6 +8,7 @@ import CollectionRestoreContent from '../../pages/collections/CollectionRestoreC
 import BrowsePages from '../../pages/workspace/BrowsePages'
 import EditPage from '../../pages/workspace/EditPage'
 import Zebedee from '../../../clients/Zebedee'
+import Page from '../../pages/Page';
 
 const tempCollectionData = [
     {
@@ -140,7 +141,7 @@ describe("Viewing collection details", () => {
         await CollectionDetails.goto(`/collections/${testCollections[0].id}`);
         await CollectionDetails.waitForLoad();
         await expectPuppeteer(page).toClick('li.list__item.list__item--expandable', {text: tempPageData.description.title});
-        expect(await expectPuppeteer(page).toMatchElement('div.page', { text: tempPageData.description.title }));
+        await expectPuppeteer(page).toMatchElement('div.page', { text: tempPageData.description.title });
         const lastEditTextIsCorrect = await CollectionDetails.lastEditTextIsCorrect(process.env.ROOT_ADMIN_EMAIL, testPage.formattedPageCreationDate);
         expect(lastEditTextIsCorrect).toBeTruthy();
     })
@@ -158,32 +159,35 @@ describe("Viewing collection details", () => {
         await CollectionDetails.goto(`/collections/${testCollections[0].id}`);
         await CollectionDetails.waitForLoad();
         await expectPuppeteer(page).toClick('li.list__item.list__item--expandable');
-        expect(await expectPuppeteer(page).toMatchElement('h3', { text: '1 page in progress' }));
+        await expectPuppeteer(page).toMatchElement('h3', { text: '1 page in progress' });
         await expectPuppeteer(page).toClick('button', {text: "Delete"});
-        expect(await expectPuppeteer(page).toMatchElement('h3', { text: '0 pages in progress' }));
-        await CollectionDetails.waitForNotification();
-        await expectPuppeteer(page).toClick('button.notifications__button', {text: "OK"})
-        await CollectionDetails.notificationsAreHidden()
+        await expectPuppeteer(page).toMatchElement('h3', { text: '0 pages in progress' });
+        await Page.waitForNotification();
+        await expectPuppeteer(page).toClick('button.notifications__button', {text: "OK"});
+        await Page.waitForRequestResponse(`/zebedee/content/${testCollections[0].id}?uri=${tempPageData.uri}`, "DELETE")
         const zebedeeCollectionDetails = await Zebedee.getCollectionDetails(testCollections[0].id);
         expect(zebedeeCollectionDetails.inProgress.length).toEqual(0);
     })
 
-    it('clicking delete on an empty collection deletes the collection and displays notifcation', async () => {
+    it('clicking delete on an empty collection deletes the collection and displays notification', async () => {
         await CollectionDetails.goto(`/collections/${testCollections[1].id}`);
+        await Page.waitForRequestResponse("/zebedee/collections", "GET");
         await CollectionDetails.waitForLoad();
+        let collectionExistsInCollectionList = await CollectionDetails.collectionExistsInCollectionList(testCollections[1].id);
+        expect(collectionExistsInCollectionList).toBe(true);
         const deleteIsVisible = await CollectionDetails.deleteButtonIsVisible();
         expect(deleteIsVisible).toBeTruthy();
         await expectPuppeteer(page).toClick('button#delete-collection', {text: "Delete"});
-        await CollectionDetails.waitForDrawerToClose()
+        await Page.waitForNotification();
+        await expectPuppeteer(page).toMatchElement('.notifications__item', { text: `Collection deleted` });
+        await CollectionDetails.waitForDrawerToClose();
         const drawerIsVisible = await CollectionDetails.drawerIsVisible()
         expect(drawerIsVisible).toBeFalsy();
         await CollectionsPage.waitForLoad();
         expect(await CollectionsPage.currentPath()).toBe('/florence/collections');
-        await CollectionDetails.waitForNotification();
-        expect(await expectPuppeteer(page).toMatchElement('.notifications__item', { text: `Collection deleted` }));
         const collectionExists = await Zebedee.collectionExists(testCollections[1].id);
-        expect(collectionExists).toBeFalsy() 
-        const collectionExistsInCollectionList = await CollectionDetails.collectionExistsInCollectionList(testCollections[1].id);
-        expect(collectionExistsInCollectionList).toBeFalsy()
+        expect(collectionExists).toBeFalsy();
+        collectionExistsInCollectionList = await CollectionDetails.collectionExistsInCollectionList(testCollections[1].id);
+        expect(collectionExistsInCollectionList).toBeFalsy();
     })
 })

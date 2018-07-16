@@ -99,31 +99,7 @@ export default class CollectionDetails extends Page {
         })
     }
 
-    static async waitForNotification() {
-        try {
-            await page.waitForSelector('li.notifications__item');
-        } catch (error) {
-            console.error("Error waiting for li.notifications__item", error);
-            fail("Error waiting for li.notifications__item");
-        }
-    }
-
-    static async lastEditTextIsCorrect(user, date) {
-        return await page.$eval('.expandable-item__contents p', (element, user, date) => {
-            if (element.innerHTML === `Last edit: ${user} (${date})`) {
-                return true;
-            }
-            return false;
-        }, user, date)
-    }
-
-    static async notificationsAreHidden() {
-        return await page.waitForSelector('li.notifications__item', {
-            hidden: true,
-        })
-    }
-
     static async collectionExistsInCollectionList(collectionID) {
-        return await page.$$eval(`#${collectionID}`, element => element.length > 0)
+        return await page.$$eval(`#${collectionID}`, elements => elements.length > 0);
     }
 }
