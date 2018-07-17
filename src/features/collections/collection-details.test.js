@@ -142,8 +142,8 @@ describe("Viewing collection details", () => {
         await CollectionDetails.waitForLoad();
         await expectPuppeteer(page).toClick('li.list__item.list__item--expandable', {text: tempPageData.description.title});
         await expectPuppeteer(page).toMatchElement('div.page', { text: tempPageData.description.title });
-        const lastEditTextIsCorrect = await CollectionDetails.lastEditTextIsCorrect(process.env.ROOT_ADMIN_EMAIL, testPage.formattedPageCreationDate);
-        expect(lastEditTextIsCorrect).toBeTruthy();
+        const lastEditText = await CollectionDetails.lastEditText();
+        expect(lastEditText).toBe(`Last edit: ${process.env.ROOT_ADMIN_EMAIL} (${testPage.formattedPageCreationDate})`);
     })
 
     it("can edit a file in a collection", async () => {

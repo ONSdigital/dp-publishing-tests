@@ -139,13 +139,8 @@ export default class Page {
         }
     }
 
-    static async lastEditTextIsCorrect(user, date) {
-        return await page.$eval('.expandable-item__contents p', (element, user, date) => {
-            if (element.innerHTML === `Last edit: ${user} (${date})`) {
-                return true;
-            }
-            return false;
-        }, user, date)
+    static async lastEditText() {
+        return await page.$eval('.expandable-item__contents p', element => element.textContent);
     }
 
     static async notificationsAreHidden() {
