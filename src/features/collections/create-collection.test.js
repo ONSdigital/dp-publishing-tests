@@ -2,6 +2,8 @@ import expectPuppeteer from 'expect-puppeteer';
 
 import CollectionsPage, { collectionsPageSelectors } from '../../pages/collections/CollectionsPage';
 import CollectionDetails from '../../pages/collections/CollectionDetails';
+import CollectionSelectCalendarEntry from '../../pages/collections/CollectionSelectCalendarEntry';
+import Page from '../../pages/Page';
 
 describe("Creating a new collection", () => {
     
@@ -83,8 +85,10 @@ describe("Creating a new collection", () => {
         });
 
         await expectPuppeteer(page).toClick('button', {text: 'Select a calendar entry'});
-        await expectPuppeteer(page).toMatchElement('h1.modal__title');
+        await CollectionSelectCalendarEntry.waitForLoad();
         await expectPuppeteer(page).toFill('#search-releases', 'Acceptance test');
+        await expectPuppeteer(page).toMatchElement('.selectable-box__status');
+        await CollectionSelectCalendarEntry.waitForLoad();
         await expectPuppeteer(page).toClick('.selectable-box__item div', {text: "Acceptance test calendar entry"});
         await expectPuppeteer(page).toClick('button', {text: "Submit"});
         
