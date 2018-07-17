@@ -60,7 +60,7 @@ describe("Viewing collection details", () => {
         console.log("Automatically creating test collection");
         testCollections = await CollectionsPage.setupCollectionsList(tempCollectionData);
         testPage = await Zebedee.createPage(testCollections[0].id, tempPageData);
-        testPage.formattedPageCreationDate = dateFormat(testPage.pageCreationDate, "ddd d mmm yyyy - HH:MM:ss")
+        testPage.formattedPageCreationDate = dateFormat(testPage.pageCreationDate, "ddd d mmm yyyy - HH:MM:ss");
     });
 
     afterAll(async () => {

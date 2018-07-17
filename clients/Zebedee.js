@@ -724,7 +724,10 @@ const Zebedee = class {
             throw Error(`${response.status}: Error creating page: '${page.description.title}'`);
         }
 
-        return {...page, pageCreationDate: new Date()};
+        const collectionDetails = await this.getCollectionDetails(collectionID);
+        const pageInCollection = collectionDetails.inProgress.find(collectionPage => collectionPage.uri == page.uri);
+
+        return {...page, pageCreationDate: pageInCollection.events[pageInCollection.events.length-1].date};
     }
 
     static async deletePage(collectionID, page) {
