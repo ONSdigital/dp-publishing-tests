@@ -44,22 +44,9 @@ export default class Page {
             return;
         }
 
-        // TODO detect if cookie is set first and not set cookie again if so.
-        let tempAccessToken = Zebedee.getTempUserAccessToken();
-        if (!tempAccessToken) {
-            await Zebedee.createTempAdminUser(Zebedee.getAdminAccessToken());
-            tempAccessToken = Zebedee.getTempUserAccessToken();
-        }
-        
-        // Go to any page first because we can't set cookies on a blank page
-        // and we need to set the access_token for accessing the collections screen
-        await this.goto("").catch(error => {
-            console.error("Error navigating to login page\n", error);
-        });
-
-        await this.setAccessTokenCookie(tempAccessToken);
-        await this.setSessionEmailLocalStorage(Zebedee.getTempAdminUserEmail());
-        await this.setUserTypeLocalStorage("PUBLISHING_SUPPORT");
+        // By default login as an admin because this is what the majority of tests currently require
+        // if this changes we may want to remove or change this default
+        await this.loginAsAdmin();
     }
 
     static async goto(path) {
@@ -75,6 +62,42 @@ export default class Page {
     static async currentPath() {
         const URL = await page.url();
         return URL.replace(process.env.PUBLISHING_ENV_URL, "");
+    }
+
+    static async loginAsViewer() {
+        // TODO detect if cookie is set first and not set cookie again if so.
+        let tempAccessToken = Zebedee.getTempViewerAccessToken();
+        if (!tempAccessToken) {
+            tempAccessToken = await Zebedee.createTempViewerUser(Zebedee.getAdminAccessToken());
+        }
+        
+        // Go to any page first because we can't set cookies on a blank page
+        // and we need to set the access_token for accessing the collections screen
+        await this.goto("").catch(error => {
+            console.error("Error navigating to login page\n", error);
+        });
+
+        await this.setAccessTokenCookie(tempAccessToken);
+        await this.setSessionEmailLocalStorage(Zebedee.getTempViewerUserEmail());
+        await this.setUserTypeLocalStorage("VIEWER");
+    }
+    
+    static async loginAsAdmin() {
+        // TODO detect if cookie is set first and not set cookie again if so.
+        let tempAccessToken = Zebedee.getTempAdminAccessToken();
+        if (!tempAccessToken) {
+            tempAccessToken = await Zebedee.createTempAdminUser(Zebedee.getAdminAccessToken());
+        }
+        
+        // Go to any page first because we can't set cookies on a blank page
+        // and we need to set the access_token for accessing the collections screen
+        await this.goto("").catch(error => {
+            console.error("Error navigating to login page\n", error);
+        });
+
+        await this.setAccessTokenCookie(tempAccessToken);
+        await this.setSessionEmailLocalStorage(Zebedee.getTempAdminUserEmail());
+        await this.setUserTypeLocalStorage("PUBLISHING_SUPPORT");
     }
 
     static async setAccessTokenCookie(token) {

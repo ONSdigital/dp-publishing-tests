@@ -9,10 +9,14 @@ const adminCredentials = {
     password: process.env.ROOT_ADMIN_PASSWORD
 };
 const tempAdminUserEmail = "automated-admin@email.com";
-const tempAdminUserPassword = process.env.TEMP_USER_PASSWORD;
+const tempViewerUserEmail = "automated-viewer@email.com";
+const tempUserPassword = process.env.TEMP_USER_PASSWORD;
 
 let accessTokens = {
-    tempUser: global.accessTokens ? global.accessTokens.tempUser : "",
+    tempUsers: (global.accessTokens && global.accessTokens.tempUsers) ? {
+        admin: global.accessTokens.tempUsers.admin,
+        viewer: global.accessTokens.tempUsers.viewer
+    } : {admin: null, viewer: null},
     rootAdmin: global.accessTokens ? global.accessTokens.rootAdmin : "",
 };
 
@@ -26,23 +30,44 @@ const Zebedee = class {
             throw Error("Root admin credentials not provided");
         }
 
-        if (!tempAdminUserPassword) {
+        if (!tempUserPassword) {
             Log.warn("Unable to setup and start tests because no password for the temporary admin account was provided\nSet environment variable TEMP_USER_PASSWORD with a valid password");
             throw Error("Temproary admin account's password not provided");
         }
 
         const adminAccessToken = await this.loginAsRootAdmin();
         await this.createTempAdminUser(adminAccessToken);
+        await this.createTempViewerUser(adminAccessToken);
 
         Log.info("Zebedee initialisation finished");
     }
-
-    static setTempUserAccessToken(token) {
-        accessTokens = {...accessTokens, tempUser: token};
+    
+    static setTempAdminAccessToken(token) {
+        accessTokens = {
+            ...accessTokens, 
+            tempUsers: {
+                ...accessTokens.tempUsers,
+                admin: token
+            }
+        };
+    }
+    
+    static setTempViewerAccessToken(token) {
+        accessTokens = {
+            ...accessTokens, 
+            tempUsers: {
+                ...accessTokens.tempUsers,
+                viewer: token
+            }
+        };
     }
 
-    static getTempUserAccessToken() {
-        return accessTokens.tempUser;
+    static getTempAdminAccessToken() {
+        return accessTokens.tempUsers ? accessTokens.tempUsers.admin : null;
+    }
+    
+    static getTempViewerAccessToken() {
+        return accessTokens.tempUsers ? accessTokens.tempUsers.viewer : null;
     }
     
     static setAdminAccessToken(token) {
@@ -57,25 +82,58 @@ const Zebedee = class {
         return tempAdminUserEmail;
     }
     
+    static getTempViewerUserEmail() {
+        return tempViewerUserEmail;
+    }
+    
     static getAdminUserEmail() {
         return adminCredentials.email;
     }
 
     static async createTempAdminUser(adminAccessToken) {
+        const accessToken = await this.createUser(adminAccessToken, "admin");
+        console.info(`Created temporary admin account: ${tempAdminUserEmail}`);
+        this.setTempAdminAccessToken(accessToken);
+        return accessToken;
+    }
+    
+    static async createTempViewerUser(adminAccessToken) {
+        const accessToken = await this.createUser(adminAccessToken, "viewer");
+        console.info(`Created temporary viewer account: ${tempViewerUserEmail}`);
+        this.setTempViewerAccessToken(accessToken);
+        return accessToken;
+    }
+
+    static async createUser(adminAccessToken, userType) {
         let tempUserAlreadyExists = false;
         const tempPassword = "to be changed";
+        let tempEmail = "";
+        switch (userType) {
+            case("admin"): {
+                tempEmail = tempAdminUserEmail;
+                break;
+            }
+            case("viewer"): {
+                tempEmail = tempViewerUserEmail;
+                break;
+            }
+            default: {
+                tempEmail = tempAdminUserEmail;
+                break;
+            }
+        }
         const createUserProfileBody = {
-            email: tempAdminUserEmail,
-            name: tempAdminUserEmail
+            email: tempEmail,
+            name: tempEmail
         };
         const setUserTempPasswordBody = {
-            email: tempAdminUserEmail,
+            email: tempEmail,
             password: tempPassword
         };
         const setUserPermissionsBody = {
-           editor: true,
-           admin: true,
-           email: tempAdminUserEmail 
+           editor: (userType === "admin" || userType === "editor"),
+           admin: userType === "admin",
+           email: tempEmail 
         };
 
         await fetch(`${zebedeeURL}/users`, {
@@ -86,7 +144,7 @@ const Zebedee = class {
             }
         }).then(response => {
             if (!response.ok && response.status !== 409) {
-                throw Error(`${response.status} - ${response.statusText}\nFailed to create temporary admin user's profile`);
+                throw Error(`${response.status} - ${response.statusText}\nFailed to create temporary '${userType}' user's profile`);
             }
             if (response.status == 409) {
                 // Log.warn("Temporary admin user already exists")
@@ -99,14 +157,14 @@ const Zebedee = class {
 
         if (tempUserAlreadyExists) {
             // Log.warn("Deleting existing temporary admin user");
-            await fetch(`${zebedeeURL}/users?email=${tempAdminUserEmail}`, {
+            await fetch(`${zebedeeURL}/users?email=${tempEmail}`, {
                 method: "DELETE",
                 headers: {
                     "X-Florence-Token": adminAccessToken
                 }
             }).then(response => {
                 if (!response.ok) {
-                    throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary admin user's profile`);
+                    throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary '${userType}' user's profile`);
                 }
                 return response.json();
             }).catch(error => {
@@ -121,7 +179,7 @@ const Zebedee = class {
                 }
             }).then(response => {
                 if (!response.ok) {
-                    throw Error(`${response.status} - ${response.statusText}\nFailed to create temporary admin user's profile`);
+                    throw Error(`${response.status} - ${response.statusText}\nFailed to create temporary '${userType}' user's profile`);
                 }
                 return response.json();
             }).catch(error => {
@@ -137,7 +195,7 @@ const Zebedee = class {
             }
         }).then(response => {
             if (!response.ok) {
-                throw Error(`${response.status} - ${response.statusText}\nFailed to set temporary for temporary admin user's`);
+                throw Error(`${response.status} - ${response.statusText}\nFailed to set temporary for temporary '${userType}' user's`);
             }
             return response.json();
         }).catch(error => {
@@ -152,7 +210,7 @@ const Zebedee = class {
             }
         }).then(response => {
             if (!response.ok) {
-                throw Error(`${response.status} - ${response.statusText}\nFailed to set temporary admin user's permissions`);
+                throw Error(`${response.status} - ${response.statusText}\nFailed to set temporary '${userType}' user's permissions`);
             }
             return response.json();
         }).catch(error => {
@@ -162,13 +220,13 @@ const Zebedee = class {
         await fetch(`${zebedeeURL}/password`, {
             method: "POST",
             body: JSON.stringify({
-                email: tempAdminUserEmail,
+                email: tempEmail,
                 oldPassword: tempPassword,
-                password: tempAdminUserPassword
+                password: tempUserPassword
             })
         }).then(response => {
             if (!response.ok && response.status !== 417) {
-                throw Error(`${response.status} - ${response.statusText}\nFailed to set temporary admin user's permanent password`);
+                throw Error(`${response.status} - ${response.statusText}\nFailed to set temporary '${userType}' user's permanent password`);
             }
             return response.json();
         }).catch(error => {
@@ -178,19 +236,17 @@ const Zebedee = class {
         const accessToken = await fetch(`${zebedeeURL}/login`, {
             method: "POST",
             body: JSON.stringify({
-                email: tempAdminUserEmail,
-                password: tempAdminUserPassword
+                email: tempEmail,
+                password: tempUserPassword
             })
         }).then(response => {
             if (!response.ok) {
-                throw Error(`${response.status} - ${response.statusText}\nFailed to login into new temporary admin user's account`);
+                throw Error(`${response.status} - ${response.statusText}\nFailed to login into new temporary '${userType}' user's account`);
             }
             return response.json();
         }).catch(error => {
             Log.error(error);
         });
-        
-        this.setTempUserAccessToken(accessToken);
 
         return accessToken;
     }
@@ -205,6 +261,24 @@ const Zebedee = class {
             if (!response.ok) {
                 throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary admin user's profile`);
             }
+            console.log(`Remove temporary admin account: ${tempAdminUserEmail}`);
+            return response.json();
+        }).catch(error => {
+            Log.error(error);
+        });
+    }
+    
+    static async removeTempViewerUser(adminAccessToken) {
+        await fetch(`${zebedeeURL}/users?email=${tempViewerUserEmail}`, {
+            method: "DELETE",
+            headers: {
+                "X-Florence-Token": adminAccessToken
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary viewer user's profile`);
+            }
+            console.log(`Remove temporary admin account: ${tempViewerUserEmail}`);
             return response.json();
         }).catch(error => {
             Log.error(error);
@@ -240,6 +314,7 @@ const Zebedee = class {
     static async cleanup() {
         const accessToken = await this.loginAsRootAdmin();
         await this.removeTempAdminUser(accessToken);
+        await this.removeTempViewerUser(accessToken);
         Log.success("Finished cleaning up environment");
     }
 
@@ -298,7 +373,7 @@ const Zebedee = class {
     static async getCollectionByName(collectionName) {
         const response = await fetch(`${zebedeeURL}/collections`, {
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken(),
+                "X-Florence-Token": this.getAdminAccessToken(),
                 "Content-type": "application/json"
             },
         }).catch(error => {
@@ -324,7 +399,7 @@ const Zebedee = class {
     static async checkCollectionExists(ID) {
         const response = await fetch(`${zebedeeURL}/collectionDetails/${ID}`, {
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken(),
+                "X-Florence-Token": this.getAdminAccessToken(),
                 "Content-type": "application/json"
             },
             method: "GET"
@@ -344,7 +419,7 @@ const Zebedee = class {
     static async getCollectionDetails(ID) {
         const response = await fetch(`${zebedeeURL}/collectionDetails/${ID}`, {
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken(),
+                "X-Florence-Token": this.getAdminAccessToken(),
                 "Content-type": "application/json"
             },
             method: "GET"
@@ -360,7 +435,7 @@ const Zebedee = class {
     static async removePageFromCollection(ID, pageURI) {
         const response = await fetch(`${zebedeeURL}/content/${ID}?uri=${pageURI}`, {
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken()
+                "X-Florence-Token": this.getAdminAccessToken()
             },
             method: "DELETE"
         });
@@ -473,7 +548,7 @@ const Zebedee = class {
 
         const publishedCollection = await fetch(`${zebedeeURL}/publishedCollections/${ID}`, {
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken()
+                "X-Florence-Token": this.getAdminAccessToken()
             },
         }).then(response => response.json());
 
@@ -569,7 +644,7 @@ const Zebedee = class {
     
         const calendarEntryResponse = await fetch(`${path}/releases/acceptancetestcalendarentry`, {
             headers: {
-                cookie: `access_token=${this.getTempUserAccessToken()}`
+                cookie: `access_token=${this.getAdminAccessToken()}`
             }
         });
 
@@ -579,8 +654,7 @@ const Zebedee = class {
 
         if (calendarEntryResponse.ok) {
             console.warn("Test calendar entry already exists");
-            // await this.deleteTestCalendarEntry();
-            return {};
+            return collection;
         }
         
         const body = {
@@ -614,7 +688,7 @@ const Zebedee = class {
         const saveResponse = await fetch(`${zebedeeURL}/content/${collection.id}?uri=/releases/acceptancetestcalendarentry/data.json`, {
             method: "POST",
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken()
+                "X-Florence-Token": this.getAdminAccessToken()
             },
             body: JSON.stringify(body)
         });
@@ -632,7 +706,7 @@ const Zebedee = class {
         const releaseIsLive = async () => {
             const response = await fetch(`${zebedeeURL}/publishedCollections/${collection.id}`, {
                 headers: {
-                    "X-Florence-Token": this.getTempUserAccessToken()
+                    "X-Florence-Token": this.getAdminAccessToken()
                 }
             }).catch(error => {
                 throw Error(error);
@@ -672,7 +746,7 @@ const Zebedee = class {
         const response = await fetch(`${zebedeeURL}/DeleteContent`, {
             method: "POST",
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken()
+                "X-Florence-Token": this.getAdminAccessToken()
             },
             body: JSON.stringify({
                 uri: URI,
@@ -690,7 +764,7 @@ const Zebedee = class {
         const submitResponse = await fetch(`${zebedeeURL}/complete/${collectionID}?uri=${URI}/data.json`, {
             method: "POST",
             headers: {
-                "X-Florence-Token": this.getTempUserAccessToken()
+                "X-Florence-Token": this.getAdminAccessToken()
             }
         });
 
@@ -701,7 +775,7 @@ const Zebedee = class {
         const reviewResponse = await fetch(`${zebedeeURL}/review/${collectionID}?uri=${URI}/data.json`, {
             method: "POST",
             headers: {
-                "X-Florence-Token": this.getAdminAccessToken()
+                "X-Florence-Token": this.getTempAdminAccessToken()
             }
         });
 

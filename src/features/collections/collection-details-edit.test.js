@@ -1,5 +1,3 @@
-import expectPuppeteer from 'expect-puppeteer';
-
 import CollectionsPage, { collectionsPageSelectors } from '../../pages/collections/CollectionsPage';
 import CollectionDetails from '../../pages/collections/CollectionDetails';
 import CollectionEdit from '../../pages/collections/CollectionEdit';
