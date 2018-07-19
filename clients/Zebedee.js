@@ -278,7 +278,7 @@ const Zebedee = class {
             if (!response.ok) {
                 throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary viewer user's profile`);
             }
-            console.log(`Remove temporary admin account: ${tempViewerUserEmail}`);
+            console.log(`Remove temporary viewer account: ${tempViewerUserEmail}`);
             return response.json();
         }).catch(error => {
             Log.error(error);
