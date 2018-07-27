@@ -127,3 +127,18 @@ describe("Trying to preview without access", () => {
         expect(collections.length).toBe(0);
     })
 })
+
+describe("Trying to view preview for a collection that doesn't exist", () => {
+    beforeAll(async () => {
+        await Page.initialise(true);
+        await Page.loginAsViewer();
+    });
+
+    it("redirects to the collections screen and displays an error", async () => {
+        await PreviewPage.load("collection-that-doesnt-exist-id");
+        await CollectionsPage.load();
+        await CollectionsPage.waitForLoad();
+        const isLoaded = await CollectionsPage.isLoaded();
+        expect(isLoaded).toBeTruthy;
+    })
+})
