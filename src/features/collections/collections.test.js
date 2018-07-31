@@ -13,13 +13,13 @@ describe("Collections screen", () => {
         expect(await CollectionsPage.isLoaded()).toBe(true);
     });
     
-    it("redirects to the login screen if not logged in [smoke]", async () => {
+    it("redirects to the login screen if not logged in", async () => {
         await CollectionsPage.revokeAuthentication();
         await CollectionsPage.load();
         expect(await LoginPage.isLoaded());
     });
     
-    it("redirect to the login screen includes parameter for subsequent redirect to collections path [smoke]", async () => {
+    it("redirect to the login screen includes parameter for subsequent redirect to collections path", async () => {
         await CollectionsPage.revokeAuthentication();
         await CollectionsPage.load();
         expect(await CollectionsPage.currentPath()).toBe("/florence/login?redirect=%2Fflorence%2Fcollections");
