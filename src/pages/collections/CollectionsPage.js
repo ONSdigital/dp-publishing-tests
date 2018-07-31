@@ -25,7 +25,7 @@ export default class CollectionsPage extends Page {
     }
 
     static async waitForLoad() {
-        await page.waitForSelector('h1', {text: "Select a collection", visible: true});
+        await page.waitForXPath("//h1[text()='Select a collection']");
     }
 
     static async load() {       
