@@ -1,7 +1,9 @@
 import expectPuppeteer from 'expect-puppeteer';
 
 import LoginPage, { loginPageSelectors } from '../../pages/login/LoginPage';
+import CollectionsPage from '../../pages/collections/CollectionsPage';
 import NavBar from '../../pages/global/NavBar';
+import Page from '../../pages/Page';
 
 describe('Login screen', async () => {
 
@@ -12,12 +14,24 @@ describe('Login screen', async () => {
     beforeEach(async() => {
         await LoginPage.load();
     });
+
+    afterEach(async() => {
+        await Page.revokeAuthentication();
+    })
     
     it("loads [smoke]", async () => {
         expect(await LoginPage.isLoaded()).toBe(true);
     });
 
-    it("email & password fields update values on input [smoke]", async () => {
+    it("user can log in [smoke]", async () => {
+        await LoginPage.inputEmail(process.env.ROOT_ADMIN_EMAIL);
+        await LoginPage.inputPassword(process.env.ROOT_ADMIN_PASSWORD);
+        await expectPuppeteer(page).toClick('button', {text: 'Log in'})
+        await CollectionsPage.waitForLoad();
+        expect(await CollectionsPage.isLoaded()).toBe(true);
+    });
+
+    it("email & password fields update values on input", async () => {
         const email = 'test@gmail.com';
         const password = 'this is a test';
         
@@ -35,7 +49,7 @@ describe('Login screen', async () => {
         expect(passwordValue).toBe(password);
     });
 
-    it("show the plain text password on 'Show password' [smoke]", async () => {
+    it("show the plain text password on 'Show password'", async () => {
         const password = "an example password";
         await LoginPage.inputPassword(password);
 
@@ -44,7 +58,7 @@ describe('Login screen', async () => {
         await expectPuppeteer(page).toMatchElement(loginPageSelectors.passwordInput + '[type="text"]');
     });
     
-    it("hide the plain text password on 'Hide password' [smoke]", async () => {
+    it("hide the plain text password on 'Hide password'", async () => {
         const password = "an example password";
         await LoginPage.inputPassword(password);
 
@@ -54,7 +68,7 @@ describe('Login screen', async () => {
         await expectPuppeteer(page).toMatchElement(loginPageSelectors.passwordInput + '[type="password"]'); 
     });
 
-    it("doesn't display links in the nav bar to any other global Florence screens [smoke]", async () => {
+    it("doesn't display links in the nav bar to any other global Florence screens", async () => {
         expect(await NavBar.containsLink("collections")).toBe(false);
         expect(await NavBar.containsLink("publishing queue")).toBe(false);
         expect(await NavBar.containsLink("reports")).toBe(false);
@@ -62,10 +76,12 @@ describe('Login screen', async () => {
         expect(await NavBar.containsLink("teams")).toBe(false);
     });
 
-    it("shows 'Login' in the nav bar as active [smoke]", async () => {
+    it("shows 'Login' in the nav bar as active", async () => {
         let containsLink = await NavBar.containsLink("login");
         await expect(containsLink).toBe(true);
     });
+
+    
 
     // TODO test errors and validation
     // TODO test successful login
