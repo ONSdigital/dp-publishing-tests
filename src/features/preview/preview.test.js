@@ -77,12 +77,12 @@ describe("Previewing a collection with access", () => {
         const collections = await CollectionsPage.getAllCollectionsInList();
         expect(collections.length).toBe(1);
         expect(collections[0].name).toBe(testCollections[0].name);
-    })
+    });
 
     it("clicking a collection loads preview", async () => {
         expectPuppeteer(page).toClick(`#${testCollections[0].id}`);
         await expectPuppeteer(page).toMatchElement('#iframe');
-    })
+    });
 
     it("user can select pages and view content in preview", async () => {
         let iframeTitle;
@@ -99,7 +99,7 @@ describe("Previewing a collection with access", () => {
         await frames[1].waitForSelector('.static_page')
         iframeTitle = await PreviewPage.iframeContentHasCorrectTitle(await frames[1].content());
         expect(iframeTitle).toBe(testPage.description.title)
-    })
+    });
 
 });
 
@@ -125,7 +125,7 @@ describe("Trying to preview without access", () => {
         await CollectionsPage.waitForLoad();
         const collections = await CollectionsPage.getAllCollectionsInList();
         expect(collections.length).toBe(0);
-    })
+    });
 })
 
 describe("Trying to view preview for a collection that doesn't exist", () => {
@@ -140,5 +140,5 @@ describe("Trying to view preview for a collection that doesn't exist", () => {
         await CollectionsPage.waitForLoad();
         const isLoaded = await CollectionsPage.isLoaded();
         expect(isLoaded).toBeTruthy;
-    })
+    });
 })
