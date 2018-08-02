@@ -1,5 +1,6 @@
 export const navBarSelectors = {
-    navBar: ".global-nav__list"
+    navBar: ".global-nav__list",
+    workingOn: ".global-nav__item--working-on"
 };
 
 export default class NavBar {
@@ -42,6 +43,11 @@ export default class NavBar {
 
     static async linkIsActive(screenName) {
 
+    }
+
+    static async getWorkingOnTitle() {
+        const text = await page.$eval(navBarSelectors.workingOn, element => element.textContent);
+        return text.replace(/Working on:\u00a0/, "");
     }
 
 }

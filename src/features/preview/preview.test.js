@@ -5,6 +5,7 @@ import Zebedee from '../../../clients/Zebedee'
 
 import Page from "../../pages/Page";
 import PreviewPage from "../../pages/preview/PreviewPage";
+import NavBar, { navBarSelectors } from '../../pages/global/NavBar';
 
 const tempCollectionData = [
     {
@@ -46,7 +47,7 @@ const tempTeams = [
 let testCollections = []
 let testPage = {}
 
-describe("Previewing a collection with access", () => {
+describe.only("Previewing a collection with access", () => {
     beforeAll(async () => {
         await Page.initialise(true);
         testCollections = await CollectionsPage.setupCollectionsList(tempCollectionData);
@@ -80,7 +81,7 @@ describe("Previewing a collection with access", () => {
     });
 
     it("clicking a collection loads preview", async () => {
-        expectPuppeteer(page).toClick(`#${testCollections[0].id}`);
+        await expectPuppeteer(page).toClick(`#${testCollections[0].id}`);
         await expectPuppeteer(page).toMatchElement('#iframe');
     });
 
@@ -101,6 +102,18 @@ describe("Previewing a collection with access", () => {
         expect(iframeTitle).toBe(testPage.description.title)
     });
 
+    it("clicking a collection shows the 'Working on' tab in the navbar, with the collection name", async () => {
+        await expectPuppeteer(page).toClick(`#${testCollections[0].id}`);
+        const title = await NavBar.getWorkingOnTitle();
+        expect(title).toBe(testCollections[0].name);
+    });
+    
+    it("routing directly to preview the 'Working on' tab shows a loading icon then the collection name", async () => {
+        await PreviewPage.load(testCollections[0].id);
+        await expectPuppeteer(page).toMatchElement(`${navBarSelectors.workingOn} .loader`);
+    });
+
+    it("doesn't display the preview page selector for the route '/florence/preview'");
 });
 
 describe("Trying to preview without access", () => {
@@ -126,6 +139,8 @@ describe("Trying to preview without access", () => {
         const collections = await CollectionsPage.getAllCollectionsInList();
         expect(collections.length).toBe(0);
     });
+
+    it("doesn't display the preview page selector for the route '/florence/preview'");
 })
 
 describe("Trying to view preview for a collection that doesn't exist", () => {
