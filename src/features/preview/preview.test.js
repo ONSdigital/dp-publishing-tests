@@ -47,7 +47,7 @@ const tempTeams = [
 let testCollections = []
 let testPage = {}
 
-describe.only("Previewing a collection with access", () => {
+describe("Previewing a collection with access", () => {
     beforeAll(async () => {
         await Page.initialise(true);
         testCollections = await CollectionsPage.setupCollectionsList(tempCollectionData);
@@ -113,7 +113,11 @@ describe.only("Previewing a collection with access", () => {
         await expectPuppeteer(page).toMatchElement(`${navBarSelectors.workingOn} .loader`);
     });
 
-    it("doesn't display the preview page selector for the route '/florence/preview'");
+    it("doesn't display the preview page selector for the invalid route '/florence/preview'", async () => {
+        await Page.goto(`/preview`);
+        expect(await NavBar.isLoaded()).toBe(true);
+        expect(await NavBar.previewPageSelectorIsShowing()).toBe(false);
+    });
 });
 
 describe("Trying to preview without access", () => {
@@ -140,7 +144,11 @@ describe("Trying to preview without access", () => {
         expect(collections.length).toBe(0);
     });
 
-    it("doesn't display the preview page selector for the route '/florence/preview'");
+    it("doesn't display the preview page selector for the invalid route '/florence/preview'", async () => {
+        await Page.goto(`/preview`);
+        expect(await NavBar.isLoaded()).toBe(true);
+        expect(await NavBar.previewPageSelectorIsShowing()).toBe(false);
+    });
 })
 
 describe("Trying to view preview for a collection that doesn't exist", () => {
