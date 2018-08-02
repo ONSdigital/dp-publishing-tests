@@ -116,7 +116,7 @@ describe("Trying to preview without access", () => {
 
     it("preview doesn't load, shows and error and redirects user to collections screen", async () => {
         await PreviewPage.load(testCollections[0].id);
-        await expectPuppeteer(page).toMatchElement('.notifications__item', { text: 'You do not have persmission to view this data and have been redirected to collections screen' });
+        await expectPuppeteer(page).toMatchElement('.notifications__item', { text: 'You do not have permission to view this data, so you have been redirected to the collections screen' });
         expect(await CollectionsPage.currentPath()).toBe(`/florence/collections`);
     });
 
