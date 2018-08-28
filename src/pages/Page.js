@@ -81,6 +81,24 @@ export default class Page {
         await this.setSessionEmailLocalStorage(Zebedee.getTempViewerUserEmail());
         await this.setUserTypeLocalStorage("VIEWER");
     }
+
+    static async loginAsPublisher() {
+        // TODO detect if cookie is set first and not set cookie again if so.
+        let tempAccessToken = Zebedee.getTempPublisherAccessToken();
+        if (!tempAccessToken) {
+            tempAccessToken = await Zebedee.createTempPublisherUser(Zebedee.getAdminAccessToken());
+        }
+        
+        // Go to any page first because we can't set cookies on a blank page
+        // and we need to set the access_token for accessing the collections screen
+        await this.goto("").catch(error => {
+            console.error("Error navigating to login page\n", error);
+        });
+
+        await this.setAccessTokenCookie(tempAccessToken);
+        await this.setSessionEmailLocalStorage(Zebedee.getTempPublisherUserEmail());
+        await this.setUserTypeLocalStorage("PUBLISHING_SUPPORT");
+    }
     
     static async loginAsAdmin() {
         // TODO detect if cookie is set first and not set cookie again if so.
