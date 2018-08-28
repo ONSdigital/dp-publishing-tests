@@ -9,6 +9,7 @@ const adminCredentials = {
     password: process.env.ROOT_ADMIN_PASSWORD
 };
 const tempAdminUserEmail = "automated-admin@email.com";
+const tempPublisherUserEmail = "automated-publisher@email.com";
 const tempViewerUserEmail = "automated-viewer@email.com";
 const tempUserPassword = process.env.TEMP_USER_PASSWORD;
 
@@ -37,6 +38,7 @@ const Zebedee = class {
 
         const adminAccessToken = await this.loginAsRootAdmin();
         await this.createTempAdminUser(adminAccessToken);
+        await this.createTempPublisherUser(adminAccessToken);
         await this.createTempViewerUser(adminAccessToken);
 
         Log.info("Zebedee initialisation finished");
@@ -48,6 +50,16 @@ const Zebedee = class {
             tempUsers: {
                 ...accessTokens.tempUsers,
                 admin: token
+            }
+        };
+    }
+
+    static setTempPublisherAccessToken(token) {
+        accessTokens = {
+            ...accessTokens, 
+            tempUsers: {
+                ...accessTokens.tempUsers,
+                publisher: token
             }
         };
     }
@@ -65,6 +77,10 @@ const Zebedee = class {
     static getTempAdminAccessToken() {
         return accessTokens.tempUsers ? accessTokens.tempUsers.admin : null;
     }
+
+    static getTempPublisherAccessToken() {
+        return accessTokens.tempUsers ? accessTokens.tempUsers.publisher : null;
+    }
     
     static getTempViewerAccessToken() {
         return accessTokens.tempUsers ? accessTokens.tempUsers.viewer : null;
@@ -81,6 +97,10 @@ const Zebedee = class {
     static getTempAdminUserEmail() {
         return tempAdminUserEmail;
     }
+
+    static getTempPublisherUserEmail() {
+        return tempPublisherUserEmail;
+    }
     
     static getTempViewerUserEmail() {
         return tempViewerUserEmail;
@@ -96,6 +116,13 @@ const Zebedee = class {
         this.setTempAdminAccessToken(accessToken);
         return accessToken;
     }
+
+    static async createTempPublisherUser(adminAccessToken) {
+        const accessToken = await this.createUser(adminAccessToken, "editor");
+        console.info(`Created temporary publisher account: ${tempPublisherUserEmail}`);
+        this.setTempPublisherAccessToken(accessToken);
+        return accessToken;
+    }
     
     static async createTempViewerUser(adminAccessToken) {
         const accessToken = await this.createUser(adminAccessToken, "viewer");
@@ -104,13 +131,17 @@ const Zebedee = class {
         return accessToken;
     }
 
-    static async createUser(adminAccessToken, userType) {
+    static async createUser(adminAccessToken, userType, customEmail, customName) {
         let tempUserAlreadyExists = false;
         const tempPassword = "to be changed";
         let tempEmail = "";
         switch (userType) {
             case("admin"): {
                 tempEmail = tempAdminUserEmail;
+                break;
+            }
+            case("editor"): {
+                tempEmail = tempPublisherUserEmail;
                 break;
             }
             case("viewer"): {
@@ -123,8 +154,8 @@ const Zebedee = class {
             }
         }
         const createUserProfileBody = {
-            email: tempEmail,
-            name: tempEmail
+            email: customEmail ? customEmail : tempEmail,
+            name: customName ? customName : tempEmail
         };
         const setUserTempPasswordBody = {
             email: tempEmail,
@@ -884,6 +915,32 @@ const Zebedee = class {
             return collection.id === collectionID;
         });
 
+    }
+
+    static async createUsers(users) {
+        for (let i = 0; i < users.length; i++) {
+            console.log(`Creating user: ${users[i].name}`)
+            await this.createUser(this.getAdminAccessToken(), "admin", users[i].email, users[i].name);;
+        }
+    }
+
+    static async deleteUsers(users) {
+        for (let i = 0; i < users.length; i++) {
+            await fetch(`${zebedeeURL}/users?email=${users[i].email}`, {
+                method: "DELETE",
+                headers: {
+                    "X-Florence-Token": this.getAdminAccessToken()
+                }
+            }).then(response => {
+                if (!response.ok) {
+                    throw Error(`${response.status} - ${response.statusText}\nFailed to delete user: ${users[i].email}`);
+                }
+                console.log(`Deleted user: ${users[i].email}`);
+                return response.json();
+            }).catch(error => {
+                Log.error(error);
+            });
+        }
     }
 
 }
