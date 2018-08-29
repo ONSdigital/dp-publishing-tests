@@ -309,7 +309,24 @@ const Zebedee = class {
             if (!response.ok) {
                 throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary viewer user's profile`);
             }
-            console.log(`Remove temporary admin account: ${tempViewerUserEmail}`);
+            console.log(`Remove temporary viewer account: ${tempViewerUserEmail}`);
+            return response.json();
+        }).catch(error => {
+            Log.error(error);
+        });
+    }
+
+    static async removeTempPublisherUser(adminAccessToken) {
+        await fetch(`${zebedeeURL}/users?email=${tempPublisherUserEmail}`, {
+            method: "DELETE",
+            headers: {
+                "X-Florence-Token": adminAccessToken
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw Error(`${response.status} - ${response.statusText}\nFailed to delete existing temporary publisher user's profile`);
+            }
+            console.log(`Remove temporary publisher account: ${tempPublisherUserEmail}`);
             return response.json();
         }).catch(error => {
             Log.error(error);
@@ -346,6 +363,7 @@ const Zebedee = class {
         const accessToken = await this.loginAsRootAdmin();
         await this.removeTempAdminUser(accessToken);
         await this.removeTempViewerUser(accessToken);
+        await this.removeTempPublisherUser(accessToken);
         Log.success("Finished cleaning up environment");
     }
 
