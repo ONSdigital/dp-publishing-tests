@@ -8,6 +8,7 @@ class CustomEnvironment extends PuppeteerEnvironment {
         this.global.accessTokens = {
             tempUsers: {
                 viewer: Zebedee.getTempViewerAccessToken(),
+                publisher: Zebedee.getTempPublisherAccessToken(),
                 admin: Zebedee.getTempAdminAccessToken()
             },
             rootAdmin: Zebedee.getAdminAccessToken()
