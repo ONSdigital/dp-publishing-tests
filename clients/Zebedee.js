@@ -132,7 +132,7 @@ const Zebedee = class {
         return accessToken;
     }
 
-    static async createUser(adminAccessToken, email, name, type) {
+    static async createUser(adminAccessToken, email, name, type, confirmPassword = true) {
         if (!email) {
             console.warn("Unable to create user because no email was provided");
             return;
@@ -231,6 +231,10 @@ const Zebedee = class {
         }).catch(error => {
             console.error(error);
         });
+
+        if (!confirmPassword) {
+            return;
+        }
 
         await fetch(`${zebedeeURL}/password`, {
             method: "POST",
@@ -922,7 +926,7 @@ const Zebedee = class {
     static async createUsers(users) {
         for (let i = 0; i < users.length; i++) {
             console.log(`Creating user: ${users[i].name}`)
-            await this.createUser(this.getAdminAccessToken(), users[i].email, users[i].name, users[i].type || "admin");;
+            await this.createUser(this.getAdminAccessToken(), users[i].email, users[i].name, users[i].type || "admin", users[i].confirmPassword);;
         }
     }
 

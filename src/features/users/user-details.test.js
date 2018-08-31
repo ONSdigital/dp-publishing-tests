@@ -11,17 +11,26 @@ const tempUsers = [
     {
         name: "acceptancetestuser (admin)",
         email: "acceptancetestuseradmin@test.com",
-        type: "admin"
+        type: "admin",
+        confirmPassword: true
     },
     {
         name: "acceptancetestuser (publisher)",
         email: "acceptancetestuserpublisher@test.com",
-        type: "editor"
+        type: "editor",
+        confirmPassword: true
     },
     {
         name: "acceptancetestuser (viewer)",
         email: "acceptancetestuserviewer@test.com",
-        type: "viewer"
+        type: "viewer",
+        confirmPassword: true
+    },
+    {
+        name: "acceptancetestuser (viewer - temp password)",
+        email: "acceptancetestuserviewertemppassword@test.com",
+        type: "viewer",
+        confirmPassword: false
     }
 ];
 
@@ -67,6 +76,18 @@ describe("Admin users", () => {
         expect(await UserDetailsPage.currentPath()).toBe(`/florence/users/${tempUsers[1].email}`);
         await expectPuppeteer(page).toMatchElement(userDetailsSelectors.userName, {text: tempUsers[1].name});
         await expectPuppeteer(page).toMatchElement(userDetailsSelectors.userEmail, {text: tempUsers[1].email});
+    });
+
+    it("can view whether a user has a temporary password", async () => {
+        await UserDetailsPage.load(tempUsers[3].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(true);
+    });
+    
+    it("isn't shown a message when a user doesn't have a temporary password", async () => {
+        await UserDetailsPage.load(tempUsers[2].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(false);
     });
 
     it("'change password' action shows for user's own details", async () => {
@@ -165,7 +186,17 @@ describe("Non-admin users", () => {
         expect(await UserDetailsPage.getUsersRole()).toBe(`${tempUsers[2].name} is a viewer`);
     });
     
-    // it("can view whether a user has a temporary password");
+    it("can view whether a user has a temporary password", async () => {
+        await UserDetailsPage.load(tempUsers[3].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(true);
+    });
+    
+    it("isn't shown a message when a user doesn't have a temporary password", async () => {
+        await UserDetailsPage.load(tempUsers[2].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(false);
+    });
 
     it("'change password' action shows on user's own details", async () => {
         await UserDetailsPage.load(Zebedee.getTempPublisherUserEmail());
@@ -244,7 +275,17 @@ describe("Admin users selecting a user", () => {
         expect(await UserDetailsPage.getUsersRole()).toBe(`${tempUsers[1].name} is a publisher`);
     });
 
-    // it("displays whether the user has a temporary password");
+    it("displays when a user has a temporary password", async () => {
+        await UsersPage.selectUser(tempUsers[3].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(true);
+    });
+    
+    it("doesn't display a message when a user doesn't have a temporary password", async () => {
+        await UsersPage.selectUser(tempUsers[2].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(false);
+    });
     
     it("displays the 'change password' action", async () => {
         await UsersPage.selectUser(tempUsers[1].email);
@@ -293,7 +334,17 @@ describe("Non-admins users selecting a user", () => {
         expect(await UserDetailsPage.getUsersRole()).toBe(`${tempUsers[1].name} is a publisher`);
     });
 
-    // it("displays whether the user has a temporary password");
+    it("displays when a user has a temporary password", async () => {
+        await UsersPage.selectUser(tempUsers[3].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(true);
+    });
+    
+    it("doesn't display a message when a user doesn't have a temporary password", async () => {
+        await UsersPage.selectUser(tempUsers[2].email);
+        await UserDetailsPage.waitForLoad();
+        expect(await UserDetailsPage.tempPasswordTextIsVisible()).toBe(false);
+    });
 
     it("displays the 'change password' button if it's their own account", async () => {
         await UsersPage.selectUser(Zebedee.getTempPublisherUserEmail());

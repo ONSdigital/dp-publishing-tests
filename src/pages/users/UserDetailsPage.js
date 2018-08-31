@@ -5,6 +5,7 @@ export const userDetailsSelectors = {
     userName: "#user-name",
     userEmail: "#user-email",
     userRole: "#user-role",
+    tempPasswordText: "#user-temporary-password",
     actionsBar: ".drawer__banner",
     actionsFooter: ".drawer__footer",
     changePasswordButton: "a[href$='change-password']",
@@ -55,6 +56,10 @@ export default class UserDetailsPage extends Page {
     
     static async getUsersRole() {
         return await page.$eval(userDetailsSelectors.userRole, element => element.textContent);
+    }
+
+    static async tempPasswordTextIsVisible() {
+        return await page.$(userDetailsSelectors.tempPasswordText) !== null;
     }
 
     static async closeUserButtonIsVisible() {
