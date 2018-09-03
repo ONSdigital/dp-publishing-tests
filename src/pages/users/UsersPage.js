@@ -17,7 +17,7 @@ export default class UsersPage extends Page {
     }
 
     static async screenshot() {
-        await super.screenshot("user");
+        await super.screenshot("users");
     }
 
     // implement click using XPath as expectPuppeteer.toClick won't work with XPath
@@ -27,7 +27,9 @@ export default class UsersPage extends Page {
         if (selectedUser.length > 0) {
             await selectedUser[0].click();
         } else {
-            throw new Error("Link not found");
+            // TODO - to make this closer to how expectPuppeteer.toClick works we could fail the test here directly with fail()
+            // we should probably consider including the usersEmail in the error/log message too
+            throw new Error(`Link not found for user with the ID '${usersEmail}'`);
         }
     }
 
