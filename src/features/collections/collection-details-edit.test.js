@@ -62,7 +62,7 @@ describe("Editing a collection", () => {
         const editName = await CollectionEdit.getInputValue("#collection-edit-name");
         expect(editName).toBe("Acceptance test collection for edit collection test")
         const editTeams = await CollectionEdit.getInputValue("#collection-edit-teams");
-        expect(editTeams).toBe("");
+        expect(editTeams).toBe("default-option");
         const scheduledPublish = await CollectionEdit.getRadioSelectedValue("#edit-type-schedule");
         expect(scheduledPublish).toBeFalsy();
         const manualPublish = await CollectionEdit.getRadioSelectedValue("#edit-type-manual");
