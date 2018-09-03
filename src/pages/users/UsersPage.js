@@ -25,12 +25,21 @@ export default class UsersPage extends Page {
         const selectedUser = await page.$x(`//li[@id="${usersEmail}"]`);
 
         if (selectedUser.length > 0) {
+            const waitForNavigation = page.waitForNavigation();
             await selectedUser[0].click();
+            await waitForNavigation;
         } else {
-            // TODO - to make this closer to how expectPuppeteer.toClick works we could fail the test here directly with fail()
-            // we should probably consider including the usersEmail in the error/log message too
             throw new Error(`Link not found for user with the ID '${usersEmail}'`);
         }
+    }
+
+    static async getAllUserNamesAndIDs() {
+        return await page.$$eval('.selectable-box__item', users => (
+            users.map(user => ({
+                id: user.getAttribute('id'),
+                name: user.querySelector('*[class^="grid__col"], *[class*=" grid__col"]').textContent
+            }))
+        ));
     }
 
     static async getActiveUserIDs() {

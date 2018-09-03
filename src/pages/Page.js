@@ -163,9 +163,11 @@ export default class Page {
             // We use a promise so that we can wait until the transitionend event is fired
             // before continuing with the rest of the test (or else it'll fail on slower machines)
             await page.$eval('li.notifications__item', element => {
-                return new Promise((resolve, reject) => {
+                return new Promise(resolve => {
                     const rejectTimer = setTimeout(() => {
-                        reject("Notification transitionend event not fired within 5 seconds");
+                        console.error("Notification transitionend event not fired within 5 seconds, resolving Promise because notification item must be visible now");
+                        resolve();
+                        clearTimeout(rejectTimer);
                     }, 5000);
                     element.addEventListener('transitionend', () => {
                         console.log("Notification displayed");

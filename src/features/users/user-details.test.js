@@ -40,7 +40,7 @@ beforeAll(async () => {
 });
 
 afterAll(async ()=> {
-    await Zebedee.deleteUsers(tempUsers)
+    await Zebedee.deleteUsers(tempUsers);
 });
 
 describe("Admin users", () => {

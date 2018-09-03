@@ -2,6 +2,7 @@ import Page from "../Page";
 
 export const userDetailsSelectors = {
     visibleDrawer: ".drawer.visible",
+    animatedDrawer: ".drawer.visible.animation-finished",
     userName: "#user-name",
     userEmail: "#user-email",
     userRole: "#user-role",
@@ -32,7 +33,16 @@ export default class UserDetailsPage extends Page {
             await page.waitForSelector(userDetailsSelectors.visibleDrawer);
         } catch (error) {
             console.error("Error waiting for user details to load", error);
-            fail('Error waiting for user details to load');
+            throw new Error('Error waiting for user details to load');
+        }
+    }
+
+    static async waitForAnimationToEnd() {
+        try {
+            await page.waitForSelector(userDetailsSelectors.animatedDrawer, {timeout: 5000});
+        } catch (error) {
+            console.error("Error waiting for user details animation to end", error);
+            throw new Error('Error waiting for user details animation to end');
         }
     }
 
