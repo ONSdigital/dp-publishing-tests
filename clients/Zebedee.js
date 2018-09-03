@@ -961,6 +961,39 @@ const Zebedee = class {
         }
     }
 
+    static async getUserByID(userID) {
+        return await fetch(`${zebedeeURL}/users?email=${userID}`, {
+            method: "GET",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw Error(`${response.status} - ${response.statusText}\nFailed to get user: ${userID}`);
+            }
+            return response.json();
+        }).catch(error => {
+            Log.error(error);
+        });
+
+    }
+
+    static async getPermissionsByUserID(userID) {
+        return await fetch(`${zebedeeURL}/permission?email=${userID}`, {
+            method: "GET",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw Error(`${response.status} - ${response.statusText}\nFailed to get permission for: ${userID}`);
+            }
+            return response.json();
+        }).catch(error => {
+            Log.error(error);
+        });
+
+    }
 }
 
 module.exports = Zebedee;

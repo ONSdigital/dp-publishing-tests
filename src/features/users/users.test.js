@@ -19,9 +19,6 @@ const tempUsers = [
 ];
 
 beforeAll(async () => {
-    await UsersPage.initialise();
-    await UsersPage.load();
-    await UsersPage.waitForLoad();
     await Zebedee.createUsers(tempUsers);
 });
 
@@ -32,6 +29,7 @@ afterAll(async ()=> {
 describe("Users screen", () => {
     
     it("loads [smoke]", async () => {
+        await UsersPage.initialise();
         await UsersPage.load();
         await UsersPage.waitForLoad();
         expect(await UsersPage.isLoaded()).toBe(true);
@@ -39,6 +37,10 @@ describe("Users screen", () => {
 });
 
 describe("List of users", () => {
+    beforeAll(async () => {
+        await UsersPage.initialise();
+    });
+
     beforeEach(async () => {
         await UsersPage.load();
         await UsersPage.waitForLoad();
@@ -50,19 +52,36 @@ describe("List of users", () => {
         expect(activeUserIDs.length).toBe(1);
         expect(activeUserIDs[0] === tempUsers[0].email).toBe(true);
     });
+
     it("updates the URL correctly when a user is clicked", async () => {
         await UsersPage.selectUser(tempUsers[0].email);
         await page.waitForNavigation();
         expect(await UsersPage.currentPath()).toBe(`/florence/users/${tempUsers[0].email}`)
     });
+
     it("displays the user details drawer when a user is clicked", async () => {
         await UsersPage.selectUser(tempUsers[0].email);
         await page.waitForNavigation();
         await UserDetails.waitForLoad();
         const isLoaded = await UserDetails.isLoaded(tempUsers[0].name);
         expect(isLoaded).toBe(true);
+    });
+});
+
+describe("Admin users", () => {
+    beforeAll(async () => {
+        await UsersPage.initialise();
+    });
+
+    beforeEach(async () => {
+        await UsersPage.load();
+        await UsersPage.waitForLoad();
+    });
+
+    it("see create form", async () => {
+        await expect(page).toMatchElement('h1', { text: 'Create a user' })
     })
-})
+});
 
 describe("Non admin users", () => {
     beforeAll(async () => {
@@ -79,19 +98,4 @@ describe("Non admin users", () => {
         expect(await UsersPage.currentPath()).toBe(`/florence/users/${Zebedee.getTempPublisherUserEmail()}`)
     });
 
-    it("can only change their own password", async () => {
-        const canChangePassword = await UserDetails.changePasswordButtonIsVisible();
-        expect(canChangePassword).toBeTruthy();
-        await UsersPage.selectUser(tempUsers[0].email);
-        await page.waitForNavigation();
-        const cantChangePassword = await UserDetails.changePasswordButtonIsNotVisible();
-        expect(cantChangePassword).toBeTruthy();
-    });
-
-    it("can't navigate to change-password for other users", async () => {
-        await Page.goto(`/users/${tempUsers[0].email}/change-password`);
-        await page.waitForNavigation();
-        expect(await UsersPage.currentPath()).toBe(`/florence/users/${Zebedee.getTempPublisherUserEmail()}`)
-    })
-    
 })
