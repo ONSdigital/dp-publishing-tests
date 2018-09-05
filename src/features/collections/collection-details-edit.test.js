@@ -21,11 +21,16 @@ const tempTeams = [
 
 let testCollection = []
 
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
+
 describe("Editing a collection", () => {
 
     beforeAll(async () => {
-        await CollectionsPage.initialise();
         console.log("Automatically creating test collection");
+        await CollectionsPage.revokeAuthentication();
+        await CollectionsPage.loginAsAdmin();
         testCollection = await CollectionsPage.setupCollectionsList(tempCollectionData);
         await Zebedee.createTeam(tempTeams[0].name);
         await Zebedee.createTeam(tempTeams[1].name);
