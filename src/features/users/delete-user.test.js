@@ -22,6 +22,11 @@ afterAll(async () => {
 });
 
 describe("Starting from the user's screen", () => {
+    beforeAll(async () => {
+        await UsersPage.revokeAuthentication();
+        await UsersPage.loginAsAdmin();
+    });
+
     beforeEach(async () => {
         await UsersPage.load();
         await UsersPage.waitForLoad();
@@ -30,25 +35,6 @@ describe("Starting from the user's screen", () => {
         expect(await UserDetailsPage.deleteUserButtonIsVisible()).toBe(true);
         await expectPuppeteer(page).toClick(userDetailsSelectors.deleteUserButton);
         await ConfirmDeleteUserPage.waitForLoad();
-    });
-
-    it("animates showing the user's details", async () => {
-        await UsersPage.load();
-        await UsersPage.waitForLoad();
-        await UsersPage.selectUser(tempUsers[0].email);
-        await UserDetailsPage.waitForAnimationToEnd();
-    });
-
-    it("doesn't animate navigating from one user's details to another", async () => {
-        await UserDetailsPage.load(tempUsers[0].email);
-        
-        // We're not using `UserDetailsPage.waitForAnimation()` because we want to handle the error without
-        // console.error() logging out an error. If this is happening a lot in the future we could update the 
-        // waitForAnimation method to have an option to supress the logging
-        const checkForAnimation = async () => {
-            await page.waitForSelector(userDetailsSelectors.animatedDrawer, {timeout: 3000});
-        };
-        await expect(checkForAnimation()).rejects.toThrow();
     });
 
     it("admins can successfully delete a user", async () => {       
@@ -96,6 +82,11 @@ describe("Starting from the user's screen", () => {
 });
 
 describe("Loading the 'confirm user delete' route directly", () => {
+    beforeAll(async () => {
+        await UsersPage.revokeAuthentication();
+        await UsersPage.loginAsAdmin();
+    });
+
     beforeEach(async () => {
         await ConfirmDeleteUserPage.load(tempUsers[0].email);
         await ConfirmDeleteUserPage.waitForLoad();
@@ -125,7 +116,7 @@ describe("Loading the 'confirm user delete' route directly", () => {
 });
 
 describe("Publisher trying to delete a user", () => {
-    beforeEach(async () => {
+    beforeAll(async () => {
         await Page.revokeAuthentication();
         await Page.loginAsPublisher();
     });

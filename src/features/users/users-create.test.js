@@ -20,6 +20,8 @@ const createTestUsers = [
 describe("Creating a new user", () => {
     beforeAll(async () => {
         await UsersPage.initialise();
+        await UsersPage.revokeAuthentication();
+        await UsersPage.loginAsAdmin();
     });
 
     beforeEach(async () => {

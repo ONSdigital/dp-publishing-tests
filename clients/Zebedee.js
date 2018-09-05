@@ -731,7 +731,7 @@ const Zebedee = class {
         });
         
         if (!saveResponse.ok) {
-            throw Error(`Unable to create calendar entry - ${saveResponse.status}: ${saveResponse.statusText}`);
+            throw Error(`Unable to create calendar entry '${name}' - ${saveResponse.status}: ${saveResponse.statusText}`);
         }
 
         const collectionID = collection.id;

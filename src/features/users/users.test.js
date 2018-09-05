@@ -2,7 +2,7 @@ import expectPuppeteer from 'expect-puppeteer';
 
 import Page from "../../pages/Page";
 import UsersPage from '../../pages/users/UsersPage';
-import UserDetails from '../../pages/users/UserDetailsPage';
+import UserDetails, { userDetailsSelectors } from '../../pages/users/UserDetailsPage';
 import Zebedee from '../../../clients/Zebedee'
 
 const tempUsers = [
@@ -19,6 +19,7 @@ const tempUsers = [
 ];
 
 beforeAll(async () => {
+    await Page.initialise();
     await Zebedee.createUsers(tempUsers);
 });
 
@@ -29,7 +30,8 @@ afterAll(async ()=> {
 describe("Users screen", () => {
     
     it("loads [smoke]", async () => {
-        await UsersPage.initialise();
+        await UsersPage.revokeAuthentication();
+        await UsersPage.loginAsAdmin();
         await UsersPage.load();
         await UsersPage.waitForLoad();
         expect(await UsersPage.isLoaded()).toBe(true);
@@ -38,7 +40,8 @@ describe("Users screen", () => {
 
 describe("List of users", () => {
     beforeAll(async () => {
-        await UsersPage.initialise();
+        await UsersPage.revokeAuthentication();
+        await UsersPage.loginAsAdmin();
     });
 
     beforeEach(async () => {
@@ -54,23 +57,46 @@ describe("List of users", () => {
     });
 
     it("updates the URL correctly when a user is clicked", async () => {
+        const waitForNavigation = page.waitForNavigation();
         await UsersPage.selectUser(tempUsers[0].email);
-        await page.waitForNavigation();
+        await waitForNavigation;
         expect(await UsersPage.currentPath()).toBe(`/florence/users/${tempUsers[0].email}`)
     });
 
     it("displays the user details drawer when a user is clicked", async () => {
+        const waitForNavigation = page.waitForNavigation();
         await UsersPage.selectUser(tempUsers[0].email);
-        await page.waitForNavigation();
+        await waitForNavigation;
         await UserDetails.waitForLoad();
         const isLoaded = await UserDetails.isLoaded(tempUsers[0].name);
         expect(isLoaded).toBe(true);
+    });
+
+
+    it("animates showing the user's details", async () => {
+        await UsersPage.selectUser(tempUsers[0].email);
+        await UserDetails.waitForAnimationToEnd();
+    });
+
+    it("doesn't animate navigating from one user's details to another", async () => {
+        await UserDetails.load(tempUsers[1].email);
+        await UserDetails.waitForLoad();
+        await UsersPage.selectUser(tempUsers[0].email);
+        
+        // We're not using `UserDetailsPage.waitForAnimation()` because we want to handle the error without
+        // console.error() logging out an error. If this is happening a lot in the future we could update the 
+        // waitForAnimation method to have an option to supress the logging
+        const checkForAnimation = async () => {
+            await page.waitForSelector(userDetailsSelectors.animatedDrawer, {timeout: 3000});
+        };
+        await expect(checkForAnimation()).rejects.toThrow();
     });
 });
 
 describe("Admin users", () => {
     beforeAll(async () => {
-        await UsersPage.initialise();
+        await UsersPage.revokeAuthentication();
+        await UsersPage.loginAsAdmin();
     });
 
     beforeEach(async () => {
@@ -85,7 +111,7 @@ describe("Admin users", () => {
 
 describe("Non admin users", () => {
     beforeAll(async () => {
-        await Page.initialise(true);
+        await UsersPage.revokeAuthentication();
         await Page.loginAsPublisher();
     });
 

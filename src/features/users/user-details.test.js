@@ -45,6 +45,7 @@ afterAll(async ()=> {
 
 describe("Admin users", () => {
     beforeAll(async () => {
+        await Page.revokeAuthentication();
         await Page.loginAsAdmin();
     });
     afterAll(async () => {
@@ -134,10 +135,8 @@ describe("Admin users", () => {
 
 describe("Non-admin users", () => {
     beforeAll(async () => {
-        await Page.loginAsPublisher();
-    });
-    afterAll(async () => {
         await Page.revokeAuthentication();
+        await Page.loginAsPublisher();
     });
 
     it("can view others users' details from a direct route", async () => {
@@ -245,10 +244,8 @@ describe("Non-admin users", () => {
 
 describe("Admin users selecting a user", () => {
     beforeAll(async () => {
-        await Page.initialise();
-    });
-    afterAll(async () => {
         await Page.revokeAuthentication();
+        await Page.loginAsAdmin();
     });
 
     beforeEach(async () => {
@@ -308,6 +305,7 @@ describe("Admin users selecting a user", () => {
 
 describe("Non-admins users selecting a user", () => {
     beforeAll(async () => {
+        await Page.revokeAuthentication();
         await Page.loginAsPublisher();
     });
 
