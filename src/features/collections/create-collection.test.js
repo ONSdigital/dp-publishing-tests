@@ -3,13 +3,16 @@ import expectPuppeteer from 'expect-puppeteer';
 import CollectionsPage, { collectionsPageSelectors } from '../../pages/collections/CollectionsPage';
 import CollectionDetails from '../../pages/collections/CollectionDetails';
 import CollectionSelectCalendarEntry from '../../pages/collections/CollectionSelectCalendarEntry';
-import Page from '../../pages/Page';
+
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
 
 describe("Creating a new collection", () => {
     
     beforeAll(async () => {
-        await CollectionsPage.initialise();
-
+        await CollectionsPage.revokeAuthentication();
+        await CollectionsPage.loginAsAdmin();
         // FIXME this is only need for the scheduled by calendar entry test
         // we should consider how we only run this setup for those tests 
         // e.g. splitting them out in to their down describe block

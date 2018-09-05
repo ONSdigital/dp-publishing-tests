@@ -35,12 +35,17 @@ const tempCollectionsData = [
 let allCollections = [];
 let createdCollections = [];
 
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
+
 describe("List of collections", () => {
 
     beforeAll(async () => {
         try {
-            await CollectionsPage.initialise();
-
+            await CollectionsPage.revokeAuthentication();
+            await CollectionsPage.loginAsAdmin();
+            
             console.log("Automatically creating collections");
             createdCollections = await CollectionsPage.setupCollectionsList(tempCollectionsData);
             
@@ -66,7 +71,6 @@ describe("List of collections", () => {
         await CollectionsPage.load();
         await CollectionsPage.waitForLoad();
     });
-
 
     it("redirects to the login screen if not logged in [smoke]", async () => {
         await CollectionsPage.revokeAuthentication();
