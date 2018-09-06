@@ -1,3 +1,4 @@
+import expectPuppeteer from 'expect-puppeteer';
 import Page from "../Page";
 
 export const loginPageSelectors = {
@@ -32,10 +33,10 @@ export default class LoginPage extends Page {
     }
 
     static async inputEmail(email) {
-        await page.type(loginPageSelectors.emailInput, email);
+        await expectPuppeteer(page).toFill(loginPageSelectors.emailInput, email);
     }
     
     static async inputPassword(password) {
-        await page.type(loginPageSelectors.passwordInput, password);
+        await expectPuppeteer(page).toFill(loginPageSelectors.passwordInput, password);
     }
 }

@@ -192,7 +192,7 @@ export default class Page {
         })
     }
 
-    static async waitForRequestResponse(URL, method = "GET") {
+    static async waitForRequestResponse(URL) {
         if (URL.startsWith("/")) {
             URL = `${process.env.PUBLISHING_ENV_URL}${URL}`;
         }

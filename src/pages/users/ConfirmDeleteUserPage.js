@@ -8,6 +8,7 @@ export const deleteUserSelector = {
 };
 
 export default class ConfirmDeleteUserPage extends Page {
+    
     static async waitForLoad() {
         try {
             await page.waitForXPath(`//*[contains(@class, "modal__header")]/*[text()='Confirm delete']`);
