@@ -197,25 +197,6 @@ export default class Page {
             URL = `${process.env.PUBLISHING_ENV_URL}${URL}`;
         }
 
-        // return page.waitForResponse(URL);
-        
-        return new Promise((resolve, reject) => {
-            const handleResponse = async response => {
-                const req = response.request();
-                if (req.url() === URL && req.method() === method) {
-                    page.removeListener('response', handleResponse);
-                    clearTimeout(failureTimer);
-                    resolve();
-                }
-            };
-
-            const failureTimer = setTimeout(() => {
-                page.removeListener('response', handleResponse);
-                // fail(`Timed out (10000ms) waiting for response from ${method} request to URL '${URL}'`);
-                reject();
-            }, 10000);
-
-            page.on('response', handleResponse);
-        })
+        return page.waitForResponse(URL);
     }
 }
