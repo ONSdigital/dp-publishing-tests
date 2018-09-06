@@ -64,9 +64,7 @@ describe("List of users", () => {
     });
 
     it("displays the user details drawer when a user is clicked", async () => {
-        const waitForNavigation = page.waitForNavigation();
         await UsersPage.selectUser(tempUsers[0].email);
-        await waitForNavigation;
         await UserDetails.waitForLoad();
         const isLoaded = await UserDetails.isLoaded(tempUsers[0].name);
         expect(isLoaded).toBe(true);

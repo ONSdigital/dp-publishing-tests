@@ -57,7 +57,12 @@ export default class BrowsePages extends Page {
     }
 
     static async getSelectedPageElement() {
-        return await page.$('.page__container.selected');
+        try {
+            return await page.$('.page__container.selected');
+        } catch (error) {
+            console.error("Error trying to get selected page element in browse tree");
+            throw error;
+        }
     }
 
     static async waitForPreviewToLoadURL(URL) {

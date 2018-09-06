@@ -1,7 +1,12 @@
 import Page from "../Page";
 
-export default class ChangeUsersPasswordPage extends Page {
+export const changeUserPasswordSelectors = {
+    passwordInput: ".modal__body #new-password",
+    saveButton: ".modal__footer button[type='submit']",
+    cancelButton: ".modal__footer button[type='button']"
+}
 
+export default class ChangeUsersPasswordPage extends Page {
     static async waitForLoad() {
         try {
             await page.waitForXPath(`//*[contains(@class, "modal__header")]//*[text()='Change password']`);

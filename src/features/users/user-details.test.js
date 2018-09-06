@@ -268,7 +268,6 @@ describe("Admin users selecting a user", () => {
     it("displays the user's role", async () => {
         await UsersPage.selectUser(tempUsers[1].email);
         await UserDetailsPage.waitForLoad();
-        await UserDetailsPage.screenshot();
         expect(await UserDetailsPage.getUsersRole()).toBe(`${tempUsers[1].name} is a publisher`);
     });
 

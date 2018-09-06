@@ -48,6 +48,9 @@ describe("Starting from the user's screen", () => {
         const tempUserStillExists = users.some(user => user.id === tempUsers[0].email);
         expect(tempUserStillExists).toBe(false);
 
+        // TODO we should send a GET request to Zebedee to confirm we've definitely deleted the user
+        // from the source, not just the view.
+
         // Recreate the deleted user on Zebedee so that we don't break future tests or the teardown!
         console.log("Recreating user after delete test passed");
         await Zebedee.createUsers(tempUsers);

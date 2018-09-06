@@ -13,7 +13,13 @@ export default class UsersPage extends Page {
     } 
 
     static async waitForLoad() {
-        await page.waitForXPath("//h1[text()='Select a user']");
+        try {
+            await page.waitForXPath("//h1[text()='Select a user']");
+            await page.waitForSelector(`.loader.selectable-box__status`, {hidden: true});
+        } catch (error) {
+            console.error("Error waiting for users screen to load", error);
+            fail("Error waiting for users screen to load");
+        }
     }
 
     static async screenshot() {
@@ -25,9 +31,14 @@ export default class UsersPage extends Page {
         const selectedUser = await page.$x(`//li[@id="${usersEmail}"]`);
 
         if (selectedUser.length > 0) {
-            const waitForNavigation = page.waitForNavigation();
-            await selectedUser[0].click();
-            await waitForNavigation;
+            try {
+                const waitForNavigation = page.waitForNavigation();
+                await selectedUser[0].click();
+                await waitForNavigation;
+            } catch (error) {
+                console.error(`Error clicking link for user with the ID '${usersEmail}'`, error);
+                fail(`Error clicking link for user with the ID '${usersEmail}'`);
+            }
         } else {
             throw new Error(`Link not found for user with the ID '${usersEmail}'`);
         }

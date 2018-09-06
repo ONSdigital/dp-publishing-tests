@@ -32,9 +32,9 @@ export default class Page {
         }
 
         if (isDebugMode) {
-            jest.setTimeout(50000);
-        } else {
             jest.setTimeout(30000);
+        } else {
+            jest.setTimeout(10000);
         }
         
         await page.setViewport({width: 1920, height: 979});
@@ -196,6 +196,8 @@ export default class Page {
         if (URL.startsWith("/")) {
             URL = `${process.env.PUBLISHING_ENV_URL}${URL}`;
         }
+
+        // return page.waitForResponse(URL);
         
         return new Promise((resolve, reject) => {
             const handleResponse = async response => {
@@ -209,7 +211,7 @@ export default class Page {
 
             const failureTimer = setTimeout(() => {
                 page.removeListener('response', handleResponse);
-                fail(`Timed out (10000ms) waiting for response from ${method} request to URL '${URL}'`);
+                // fail(`Timed out (10000ms) waiting for response from ${method} request to URL '${URL}'`);
                 reject();
             }, 10000);
 

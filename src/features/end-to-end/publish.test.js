@@ -9,11 +9,15 @@ import Zebedee from '../../../clients/Zebedee';
 import Page from '../../pages/Page';
 import PublishQueuePage, { publishQueueSelectors } from '../../pages/publish-queue/PublishQueuePage';
 
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
 
 describe("Publishing end-to-end", () => {
     
     beforeAll(async () => {
-        await CollectionsPage.initialise();
+        await CollectionsPage.revokeAuthentication();
+        await CollectionsPage.loginAsAdmin();
     });
 
     afterAll(async () => {
@@ -28,7 +32,7 @@ describe("Publishing end-to-end", () => {
         await CollectionsPage.waitForLoad();
     });
 
-    it("a manual collection", async () => {
+    test("a manual collection", async (done) => {
         await CollectionsPage.fillCreateCollectionForm({
             name: "Acceptance test - end-to-end manual publish",
             releaseType: "manual",
@@ -44,16 +48,24 @@ describe("Publishing end-to-end", () => {
 
         // TODO we need to check these theme pages exist beforehand and create them if they don't
 
-        await BrowsePages.clickPageByURL("/economy");
-        await BrowsePages.waitForPageSelection("/economy");
-        await BrowsePages.clickPageByURL("/economy/grossdomesticproductgdp");
-        await BrowsePages.waitForPageSelection("/economy/grossdomesticproductgdp");
+        try {
+            await BrowsePages.clickPageByURL("/economy");
+            await BrowsePages.waitForPageSelection("/economy");
+            await BrowsePages.clickPageByURL("/economy/grossdomesticproductgdp");
+            await BrowsePages.waitForPageSelection("/economy/grossdomesticproductgdp");
+        } catch (error) {
+            console.error("Error trying to navigate through browse tree", error);
+            fail("Error trying to navigate through browse tree");
+        }
 
         // We have to check that the preview's content window has updated it's location.href value.
         // if it hasn't updated yet then the create page screen can break because Florence checks the location
         // that a page is being created under, but will get an old page and state that the bulletin
         // cannot be created there.
-        await BrowsePages.waitForPreviewToLoadURL("/economy/grossdomesticproductgdp");
+        await BrowsePages.waitForPreviewToLoadURL("/economy/grossdomesticproductgdp").catch(error => {
+            console.error("Error waiting for the preview pane to load", error);
+            throw error;
+        });
 
         const selectedPage = await BrowsePages.getSelectedPageElement();
         await expectPuppeteer(selectedPage).toClick(browsePagesSelector.createButton);
@@ -125,6 +137,7 @@ describe("Publishing end-to-end", () => {
 
         const hasPublished = await PublishQueuePage.collectionHasPublished(collectionID);
         expect(hasPublished).toBe(true);
-    });
+        done();
+    }, 60000);
 
 });
