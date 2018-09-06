@@ -21,7 +21,7 @@
     "jest-environment-puppeteer": "^2.4.0",
     "jest-puppeteer": "^3.0.1",
     "node-fetch": "^2.1.2",
-    "puppeteer": "^1.4.0",
+    "puppeteer": "^1.7.0",
     "signale": "^1.1.0"
   },
   "devDependencies": {
