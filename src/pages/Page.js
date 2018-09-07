@@ -33,8 +33,6 @@ export default class Page {
 
         if (isDebugMode) {
             jest.setTimeout(30000);
-        } else {
-            jest.setTimeout(10000);
         }
         
         await page.setViewport({width: 1920, height: 979});
@@ -50,6 +48,10 @@ export default class Page {
     }
 
     static async goto(path) {
+        if (!florenceURL) {
+            console.error("Unable to navigate to Florence because no PUBLISHING_ENV_URL provided");
+            return;
+        }
         return await page.goto(`${florenceURL}${path}`);
     }
 

@@ -75,6 +75,10 @@ const Zebedee = class {
         };
     }
 
+    static getTempAccountsPassword() {
+        return process.env.TEMP_USER_PASSWORD;
+    }
+
     static getTempAdminAccessToken() {
         return accessTokens.tempUsers ? accessTokens.tempUsers.admin : null;
     }
@@ -637,6 +641,7 @@ const Zebedee = class {
     }
 
     static async deletePublishedPage(URL) {
+        console.log(`Deleting published page '${URL}'`);
         const collection = await this.createCollection({
             name: "Acceptance test collection - delete published page " + (Math.floor(Math.random() * 1000000000)),
             type: "manual",

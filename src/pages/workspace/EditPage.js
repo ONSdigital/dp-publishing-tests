@@ -1,4 +1,4 @@
-import Page from "../Page";
+import WorkspacePage from "./WorkspacePage";
 
 export const editPageSelectors = {
     container: '.workspace-edit',
@@ -7,7 +7,7 @@ export const editPageSelectors = {
     submitForApprovalButton: '.btn-edit-save-and-submit-for-approval'
 };
 
-export default class EditPage extends Page {
+export default class EditPage extends WorkspacePage {
     static async isLoaded() {
         const isLoaded = await page.$$eval(editPageSelectors.container, elements => {
             return elements.length > 0

@@ -1,13 +1,11 @@
 import expectPuppeteer from 'expect-puppeteer';
-import Page from "../Page";
-import interval from 'interval-promise';
+import WorkspacePage from './WorkspacePage';
 
 export const browsePagesSelector = {
     createButton: ".btn-browse-create",
-    previewIframe: '#iframe'
 }
 
-export default class BrowsePages extends Page {
+export default class BrowsePages extends WorkspacePage {
     static async isLoaded() {
         const isLoaded = await page.$$eval('.workspace-browse .page-list', elements => {
             return elements.length > 0
@@ -62,27 +60,6 @@ export default class BrowsePages extends Page {
         } catch (error) {
             console.error("Error trying to get selected page element in browse tree");
             throw error;
-        }
-    }
-
-    static async waitForPreviewToLoadURL(URL) {
-        const fullURL = `${process.env.PUBLISHING_ENV_URL}${URL}`;
-        const getPreviewURL = async () => {
-            return await page.$eval(browsePagesSelector.previewIframe, iframe => {
-                return iframe.contentWindow.location.href;
-            });
-        };
-
-        try {
-            return await interval(async (_, stop) => {
-                const previewURL = await getPreviewURL();
-                if (previewURL === fullURL) {
-                    stop();
-                }
-            }, 500, {iterations: 20});
-        } catch (error) {
-            console.error(`Error waiting for preview to load URL '${fullURL}'`, error);
-            fail(`Error waiting for preview to load URL '${fullURL}'`);
         }
     }
 }

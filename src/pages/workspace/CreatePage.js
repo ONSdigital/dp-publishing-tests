@@ -1,6 +1,5 @@
 import expectPuppeteer from 'expect-puppeteer';
-
-import Page from "../Page";
+import WorkspacePage from './WorkspacePage';
 
 export const createPageSelectors = {
     container: '.workspace-create',
@@ -12,7 +11,7 @@ export const createPageSelectors = {
     datePickerDay: 'td a.ui-state-default'
 };
 
-export default class CreatePage extends Page {
+export default class CreatePage extends WorkspacePage {
     static async isLoaded() {
         const isLoaded = await page.$$eval(createPageSelectors.container, elements => {
             return elements.length > 0
