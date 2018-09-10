@@ -34,8 +34,8 @@ describe("Creating a new user", () => {
     });
 
     it("creates a new user", async () => {
-        await expect(page).toFillForm('form[name="create-new-user"]', {...createTestUsers[0]})
-        await expect(page).toClick('button', { text: 'Create user' });
+        await expectPuppeteer(page).toFillForm('form[name="create-new-user"]', {...createTestUsers[0]})
+        await expectPuppeteer(page).toClick('button', { text: 'Create user' });
         await page.waitForNavigation();
         await UserDetails.waitForLoad();
         const userDetailsIsLoaded = await UserDetails.isLoaded(createTestUsers[0].username);
@@ -47,28 +47,28 @@ describe("Creating a new user", () => {
     })
 
     it("validates username input", async ()=> {
-        await expect(page).toClick('button', { text: 'Create user' })
-        await expect(page).toMatchElement('div', { text: 'You must enter a username' })
+        await expectPuppeteer(page).toClick('button', { text: 'Create user' })
+        await expectPuppeteer(page).toMatchElement('div', { text: 'You must enter a username' })
     });
     it("validates email input", async () => {
-        await expect(page).toFill('input[name="username"]', createTestUsers[0].username);
-        await expect(page).toClick('button', { text: 'Create user' })
-        await expect(page).toMatchElement('div', { text: 'You must enter a email' })
+        await expectPuppeteer(page).toFill('input[name="username"]', createTestUsers[0].username);
+        await expectPuppeteer(page).toClick('button', { text: 'Create user' })
+        await expectPuppeteer(page).toMatchElement('div', { text: 'You must enter a email' })
     });
     it("validates password input", async () => {
-        await expect(page).toFill('input[name="username"]', createTestUsers[0].username);
-        await expect(page).toFill('input[name="email"]', createTestUsers[0].email);
-        await expect(page).toClick('button', { text: 'Create user' })
-        await expect(page).toMatchElement('div', { text: 'You must enter a password' })
+        await expectPuppeteer(page).toFill('input[name="username"]', createTestUsers[0].username);
+        await expectPuppeteer(page).toFill('input[name="email"]', createTestUsers[0].email);
+        await expectPuppeteer(page).toClick('button', { text: 'Create user' })
+        await expectPuppeteer(page).toMatchElement('div', { text: 'You must enter a password' })
     });
     it("can create different user types", async () => {
         await expect(page).toFillForm('form[name="create-new-user"]', {
             ...createTestUsers[1],
             "user-type": "admin"
         });
-        await expect(page).toClick('button', { text: 'Create user' });
+        await expectPuppeteer(page).toClick('button', { text: 'Create user' });
         await UserDetails.waitForLoad();
-        await expect(page).toMatchElement('p', { text: `${createTestUsers[1].username} is an admin` })
+        await expectPuppeteer(page).toMatchElement('p', { text: `${createTestUsers[1].username} is an admin` })
 
         // check user has correct permissions using API
         const userPermissions = await Zebedee.getPermissionsByUserID(createTestUsers[1].email)
