@@ -1,3 +1,7 @@
+import expectPuppeteer from 'expect-puppeteer';
+
+import UserDetails from '../../pages/users/UserDetailsPage';
+
 import Page from "../Page";
 
 export default class UsersPage extends Page {
@@ -62,6 +66,42 @@ export default class UsersPage extends Page {
             console.log("No active users found");
             return [];
         }
+    }
+
+    static async fillCreateUserForm(user) {
+        await expectPuppeteer(page).toFillForm('form[name="create-new-user"]', {
+            username: user.username,
+            email: user.email,
+            password: user.password
+        });
+
+        if (!user.type) {
+            return
+        }
+
+        if (user.type === "admin") {
+            await expectPuppeteer(page).toClick('input[id="admin"]');
+            return
+        }
+
+        if (user.type === "publisher") {
+            await expectPuppeteer(page).toClick('input[id="publisher"]');
+            return
+        }
+
+        if (user.type === "viewer") {
+            await expectPuppeteer(page).toClick('input[id="viewer"]');
+            return
+        }
+    }
+
+    static async createUser(user, userType) {
+        await this.fillCreateUserForm( {
+            ...user,
+            type: userType 
+        });
+        await expectPuppeteer(page).toClick('button', { text: 'Create user' });
+        await UserDetails.waitForLoad();
     }
 
 }
