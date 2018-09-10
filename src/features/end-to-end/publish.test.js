@@ -13,6 +13,8 @@ import PublishQueuePage, { publishQueueSelectors } from '../../pages/publish-que
 import WebPage from '../../pages/WebPage';
 import WorkspacePage from '../../pages/workspace/WorkspacePage';
 
+import UsersPage from '../../pages/users/UsersPage';
+
 beforeAll(async () => {
     await Page.initialise();
 });
@@ -146,6 +148,19 @@ const checkPageIsLive = async (path, name, publishDate) => {
     await Zebedee.deletePublishedPage(path);
 };
 
+const getPageHeadingByURL = async (path, publishDate) => {
+    if (publishDate) {
+        const msTillPublish = differenceInMilliseconds(new Date(publishDate), new Date());
+        await page.waitFor(msTillPublish);
+    }
+
+    const waitForNavigation = page.waitForNavigation({waitUntil: "networkidle0"});
+    await WebPage.goto(path);
+    await waitForNavigation;
+    const pageHeading = await page.$eval('h1', heading => heading.textContent);
+    await Zebedee.deletePublishedPage(path);
+    return pageHeading;
+};
 describe("Publishing end-to-end", () => {
 
     beforeEach(async () => {
@@ -191,3 +206,117 @@ describe("Publishing end-to-end", () => {
         await checkPageIsLive(newPage.path, newPage.name, newPage.publishDate);
     }, 240000);
 });
+
+const tempUser = {
+    username: "test-created-username1",
+    email: "test-created-email1@test.com",
+    password: "test-password"
+}
+
+describe("Creating users", () => {
+
+    beforeEach(async () => {
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+    })
+
+    afterEach(async () => {
+        await Zebedee.deleteUsers([tempUser]);
+    });
+
+    afterAll(async () => {
+        await LoginPage.revokeAuthentication();
+    })
+
+    it("new admin user can login, create and publish collection [scheduled]", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword())
+        await CollectionsPage.waitForLoad();
+
+        // create user 
+        await Page.goto("/users");
+        await UsersPage.waitForLoad();
+        await UsersPage.createUser(tempUser, "admin");
+
+        // log out and try sign in as new admin and set new password
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.waitForLoad();
+        await LoginPage.login(tempUser.email, tempUser.password)
+        await LoginPage.updateTemporaryPassword("a new password value");
+        
+        // create and publish new page
+        await CollectionsPage.waitForLoad();
+        const newPage = await publishNewPage("scheduled");
+        const pageName = await getPageHeadingByURL(newPage.path, newPage.publishDate);
+        expect(pageName).toBe(newPage.name);
+    }, 240000);
+
+    it("new admin user can login, create and publish collection [manual]", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword())
+        await CollectionsPage.waitForLoad();
+
+        // create user 
+        await Page.goto("/users");
+        await UsersPage.waitForLoad();
+        await UsersPage.createUser(tempUser, "admin");
+
+        // log out and try sign in as new admin and set new password
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.waitForLoad();
+        await LoginPage.login(tempUser.email, tempUser.password)
+        await LoginPage.updateTemporaryPassword("a new password value");
+        
+        // create and publish new page
+        await CollectionsPage.waitForLoad();
+        const newPage = await publishNewPage("manual");
+        const pageName = await getPageHeadingByURL(newPage.path, newPage.publishDate);
+        expect(pageName).toBe(newPage.name);
+    }, 240000);
+
+    it("new publishing user can login, create and publish collection [manual]", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword())
+        await CollectionsPage.waitForLoad();
+
+        // create user 
+        await Page.goto("/users");
+        await UsersPage.waitForLoad();
+        await UsersPage.createUser(tempUser, "publisher");
+
+        // log out and try sign in as new admin and set new password
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.waitForLoad();
+        await LoginPage.login(tempUser.email, tempUser.password)
+        await LoginPage.updateTemporaryPassword("a new password value");
+        
+        // create and publish new page
+        await CollectionsPage.waitForLoad();
+        const newPage = await publishNewPage("manual");
+        const pageName = await getPageHeadingByURL(newPage.path, newPage.publishDate);
+        expect(pageName).toBe(newPage.name);
+    }, 240000);
+
+    it("new admin user can login, create and publish collection [manual]", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword())
+        await CollectionsPage.waitForLoad();
+
+        // create user 
+        await Page.goto("/users");
+        await UsersPage.waitForLoad();
+        await UsersPage.createUser(tempUser, "publisher");
+
+        // log out and try sign in as new admin and set new password
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.waitForLoad();
+        await LoginPage.login(tempUser.email, tempUser.password)
+        await LoginPage.updateTemporaryPassword("a new password value");
+        
+        // create and publish new page
+        await CollectionsPage.waitForLoad();
+        const newPage = await publishNewPage("manual");
+        const pageName = await getPageHeadingByURL(newPage.path, newPage.publishDate);
+        expect(pageName).toBe(newPage.name);
+    }, 240000);
+})
