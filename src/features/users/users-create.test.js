@@ -62,10 +62,7 @@ describe("Creating a new user", () => {
         await expectPuppeteer(page).toMatchElement('div', { text: 'You must enter a password' })
     });
     it("can create different user types", async () => {
-        await expect(page).toFillForm('form[name="create-new-user"]', {
-            ...createTestUsers[1],
-            "user-type": "admin"
-        });
+        await UsersPage.fillCreateUserForm({...createTestUsers[1], type: "admin"})
         await expectPuppeteer(page).toClick('button', { text: 'Create user' });
         await UserDetails.waitForLoad();
         await expectPuppeteer(page).toMatchElement('p', { text: `${createTestUsers[1].username} is an admin` })
