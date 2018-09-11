@@ -28,7 +28,6 @@ export default class CollectionsPage extends Page {
         try {
             await page.waitForXPath("//h1[text()='Select a collection']");
             await page.waitForSelector(`.loader.selectable-box__status`, {hidden: true});
-            await this.screenshot();
         } catch (error) {
             console.error("Error waiting for collections screen to load", error);
             fail("Error waiting for collections screen to load");
