@@ -323,7 +323,7 @@ describe("Creating users", () => {
     }, 240000);
 });
 
-describe.only("Resetting a user's password", () => {
+describe("Resetting a user's password", () => {
     const tempUsers = [{
         name: "acceptancetestuser for resetting password (publisher)",
         email: "acceptancetestresetpasswordpublisher@test.com",
