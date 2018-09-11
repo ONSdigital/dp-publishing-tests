@@ -14,6 +14,8 @@ import WebPage from '../../pages/WebPage';
 import WorkspacePage from '../../pages/workspace/WorkspacePage';
 
 import UsersPage from '../../pages/users/UsersPage';
+import UserDetailsPage, { userDetailsSelectors } from '../../pages/users/UserDetailsPage';
+import ChangeUsersPasswordPage, { changeUserPasswordSelectors } from '../../pages/users/ChangeUsersPasswordPage';
 
 beforeAll(async () => {
     await Page.initialise();
@@ -302,7 +304,7 @@ describe("Creating users", () => {
         await CollectionsPage.waitForLoad();
 
         // create user 
-        await Page.goto("/users");
+        await UsersPage.load();
         await UsersPage.waitForLoad();
         await UsersPage.createUser(tempUser, "publisher");
 
@@ -319,4 +321,67 @@ describe("Creating users", () => {
         const pageName = await getPageHeadingByURL(newPage.path, newPage.publishDate);
         expect(pageName).toBe(newPage.name);
     }, 240000);
-})
+});
+
+describe.only("Resetting a user's password", () => {
+    const tempUsers = [{
+        name: "acceptancetestuser for resetting password (publisher)",
+        email: "acceptancetestresetpasswordpublisher@test.com",
+        type: "editor",
+        confirmPassword: true
+    }];
+    let createdCollectionID;
+
+    beforeAll(async () => {
+        await Zebedee.createUsers(tempUsers);
+        const createdCollection = await Zebedee.createCollection({
+            name: "Acceptance test collection for reset user password collection check",
+            publishDate: null,
+            releaseUri: null,
+            teams: [],
+            type: "manual",
+            collectionOwner: "ADMIN"
+        });
+        createdCollectionID = createdCollection.id;
+    });
+
+    afterAll(async () => {
+        await Zebedee.deleteCollection(createdCollectionID);
+        await Zebedee.deleteUsers(tempUsers);
+    });
+
+    beforeEach(async () => {
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+    });
+
+    it("admin resetting a publisher's password", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword());
+        await CollectionsPage.waitForLoad();
+
+        // Reset the publisher's password
+        await UsersPage.load();
+        await UsersPage.waitForLoad();
+        await UsersPage.selectUser(tempUsers[0].email);
+        await UserDetailsPage.waitForAnimationToEnd(tempUsers[0].email);
+        expect(await UserDetailsPage.getUsersName()).toBe(tempUsers[0].name);
+        await expectPuppeteer(page).toClick(userDetailsSelectors.changePasswordButton);
+        await ChangeUsersPasswordPage.waitForLoad();
+        await expectPuppeteer(page).toFill(changeUserPasswordSelectors.passwordInput, "one two three four");
+        await expectPuppeteer(page).toClick(changeUserPasswordSelectors.saveButton);
+        await UserDetailsPage.waitForNotification();
+        
+        // Log out and try to sign in as the publisher with a new password
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.login(tempUsers[0].email, "one two three four");
+        await LoginPage.updateTemporaryPassword(Zebedee.getTempAccountsPassword());
+
+        // Validate that the publisher can view the collections
+        await CollectionsPage.waitForLoad();
+        await expectPuppeteer(page).toClick(`#${createdCollectionID}`);
+        await CollectionDetails.waitForLoad();
+        const heading = await CollectionDetails.getHeadingData();
+        expect(heading.name).toBe("Acceptance test collection for reset user password collection check");
+    });
+});
