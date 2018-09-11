@@ -12,10 +12,10 @@ import LoginPage, { loginPageSelectors } from '../../pages/login/LoginPage';
 import PublishQueuePage, { publishQueueSelectors } from '../../pages/publish-queue/PublishQueuePage';
 import WebPage from '../../pages/WebPage';
 import WorkspacePage from '../../pages/workspace/WorkspacePage';
-
 import UsersPage from '../../pages/users/UsersPage';
 import UserDetailsPage, { userDetailsSelectors } from '../../pages/users/UserDetailsPage';
 import ChangeUsersPasswordPage, { changeUserPasswordSelectors } from '../../pages/users/ChangeUsersPasswordPage';
+import ConfirmDeleteUserPage, { deleteUserSelector } from '../../pages/users/ConfirmDeleteUserPage';
 
 beforeAll(async () => {
     await Page.initialise();
@@ -383,5 +383,70 @@ describe("Resetting a user's password", () => {
         await CollectionDetails.waitForLoad();
         const heading = await CollectionDetails.getHeadingData();
         expect(heading.name).toBe("Acceptance test collection for reset user password collection check");
+    });
+});
+
+/*
+Admin user can login, create a publisher user; user can login, user can make API calls to Zebedee; admin user can delete a user; deleted user can no longer login, API calls to Zebedee fail
+*/
+describe.only("Deleting users", () => {
+    
+    afterAll(async () => {
+        const userResponse = await Zebedee.getUserByID(tempUser.email);
+        if (userResponse.status !== 404) {
+            await Zebedee.deleteUsers([tempUser]);
+        }
+    });
+
+    beforeEach(async () => {
+        await Page.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.waitForLoad();
+    });
+
+    it("deleted user can no longer login and make API calls", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword());
+        await CollectionsPage.waitForLoad();
+
+        // Create publisher user 
+        await UsersPage.load();
+        await UsersPage.waitForLoad();
+        await UsersPage.createUser(tempUser, "publisher");
+
+        // Login as the publisher and check that we can make API calls and get 2XX responses
+        await Page.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.login(tempUser.email, tempUser.password);
+        await LoginPage.updateTemporaryPassword(Zebedee.getTempAccountsPassword());
+        await CollectionsPage.waitForLoad();
+        let APICallStatus = await CollectionsPage.requestStatus("/zebedee/collections");
+        expect(APICallStatus).toBe(200);
+
+        // Login as the admin user and delete the new publisher
+        await Page.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword());
+        await CollectionsPage.waitForLoad();
+        await UsersPage.load();
+        await UsersPage.waitForLoad();
+        await UsersPage.selectUser(tempUser.email);
+        await UserDetailsPage.waitForAnimationToEnd();
+        expect(await UserDetailsPage.deleteUserButtonIsVisible()).toBe(true);
+        await expectPuppeteer(page).toClick(userDetailsSelectors.deleteUserButton);
+        await ConfirmDeleteUserPage.waitForLoad();
+        await expectPuppeteer(page).toFill(deleteUserSelector.input, tempUser.email);
+        await expectPuppeteer(page).toClick(deleteUserSelector.deleteButton);
+        await ConfirmDeleteUserPage.waitForNotification();
+
+        // Fail to login as the previous publisher
+        await Page.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.login(tempUser.email, tempUser.password);
+        expect(await LoginPage.emailInputHasAnError()).toBe(true);
+        expect(await LoginPage.getEmailInputError()).toBe("Email address not recognised");
+        
+        // Fail to make an API call due to receiving a 2XX response
+        APICallStatus = await CollectionsPage.requestStatus("/zebedee/collections");
+        expect(APICallStatus).toBe(401);
     });
 });

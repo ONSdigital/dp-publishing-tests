@@ -194,6 +194,18 @@ export default class Page {
         })
     }
 
+    static async requestStatus(URL, method, body) {
+        const response = await page.evaluate(async (URL, method, body) => {
+            const req = await fetch(URL, {
+                credentials: "include",
+                method,
+                body
+            }).catch(error => {throw error});
+            return req.status;
+        }, URL, method, body);
+        return response;
+    }
+
     static async waitForRequestResponse(URL) {
         if (URL.startsWith("/")) {
             URL = `${process.env.PUBLISHING_ENV_URL}${URL}`;

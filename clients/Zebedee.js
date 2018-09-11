@@ -949,7 +949,7 @@ const Zebedee = class {
                 console.log(`Deleted user: ${users[i].email}`);
                 return response.json();
             }).catch(error => {
-                Log.error(error);
+                console.error(`Error deleting user '${users[i].email}'`, error);
             });
         }
     }
@@ -960,15 +960,7 @@ const Zebedee = class {
             headers: {
                 "X-Florence-Token": this.getAdminAccessToken()
             }
-        }).then(response => {
-            if (!response.ok) {
-                throw Error(`${response.status} - ${response.statusText}\nFailed to get user: ${userID}`);
-            }
-            return response.json();
-        }).catch(error => {
-            Log.error(error);
         });
-
     }
 
     static async getPermissionsByUserID(userID) {

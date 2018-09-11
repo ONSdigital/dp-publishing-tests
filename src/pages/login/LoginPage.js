@@ -5,6 +5,8 @@ import LoginSetNewPasswordPage from './LoginSetNewPasswordPage';
 export const loginPageSelectors = {
     passwordInput: "#password",
     emailInput: "#email",
+    emailErrorMsg: "#input-error-email",
+    passwordErrorMsg: "#input-error-password",
     loginButton: "button[type='submit']"
 };
 
@@ -36,9 +38,25 @@ export default class LoginPage extends Page {
     static async inputEmail(email) {
         await expectPuppeteer(page).toFill(loginPageSelectors.emailInput, email);
     }
+
+    static async emailInputHasAnError() {
+        return await page.$(loginPageSelectors.emailErrorMsg) !== null;
+    }
+
+    static async getEmailInputError() {
+        return await page.$eval(loginPageSelectors.emailErrorMsg, elem => elem.textContent);
+    }
     
     static async inputPassword(password) {
         await expectPuppeteer(page).toFill(loginPageSelectors.passwordInput, password);
+    }
+
+    static async passwordInputHasAnError() {
+        return await page.$(loginPageSelectors.passwordErrorMsg) !== null;
+    }
+
+    static async getPasswordInputError() {
+        return await page.$eval(loginPageSelectors.passwordErrorMsg, elem => elem.textContent);
     }
 
     static async login(email, password) {
