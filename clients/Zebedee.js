@@ -902,7 +902,7 @@ const Zebedee = class {
         });
 
         if (!response.ok) {
-            throw Error(`${response.status}: Error deleting team: '${teamName}'`);
+            throw Error(`${response.status}: Error getting team ID: '${teamName}'`);
         }
 
         const json = await response.json();
@@ -987,6 +987,41 @@ const Zebedee = class {
         });
 
     }
+    static async addUserToTeam(teamName, email) {
+        const response = await fetch(`${zebedeeURL}/teams/${teamName}?email=${email}`, {
+            method: "POST",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        })
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error adding user (${email}) to team: '${teamName}'`);
+        }
+    }
+
+    static async addTeamToCollection(teamName, collectionID) {
+        const teamID = await this.getTeamId(teamName);
+        const collection = await this.getCollectionDetails(collectionID)
+        const newTeam = {id: teamID, name: teamName, members: []}
+        const newCollection = {...collection, teams: [...collection.teams, teamName], teamsDetails: [...collection.teamsDetails, newTeam]}
+
+        const response = await fetch(`${zebedeeURL}/collection/${collectionID}`, {
+            method: "PUT",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            },
+            body: JSON.stringify(newCollection)
+        })
+
+        if (!response.ok) {
+            throw Error(`${response.status}: Error adding user (${email}) to team: '${teamName}'`);
+        }
+
+        const json = await response.json();
+        return json;
+    }
+
 }
 
 module.exports = Zebedee;
