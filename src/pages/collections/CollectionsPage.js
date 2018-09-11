@@ -21,7 +21,7 @@ export default class CollectionsPage extends Page {
 
     static async isLoaded() {
         const headings = await page.$$eval('h1', headings => headings.map(heading => heading.textContent));
-        return headings[0] === 'Select a collection' && headings[1] === 'Create a collection';
+        return headings[0] === 'Select a collection';
     }
 
     static async waitForLoad() {

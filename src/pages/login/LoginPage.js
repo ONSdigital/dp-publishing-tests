@@ -1,6 +1,8 @@
 import expectPuppeteer from 'expect-puppeteer';
 import Page from "../Page";
 
+import ChangeUsersPasswordPage from "../../pages/users/ChangeUsersPasswordPage";
+
 export const loginPageSelectors = {
     passwordInput: "#password",
     emailInput: "#email",
@@ -39,4 +41,18 @@ export default class LoginPage extends Page {
     static async inputPassword(password) {
         await expectPuppeteer(page).toFill(loginPageSelectors.passwordInput, password);
     }
+
+    static async login(email, password) {
+        await this.waitForLoad();
+        await this.inputEmail(email);
+        await this.inputPassword(password);
+        await expectPuppeteer(page).toClick(loginPageSelectors.loginButton);
+    }
+
+    static async updateTemporaryPassword(newPassword) {
+        await ChangeUsersPasswordPage.waitForLoad();
+        await expectPuppeteer(page).toFill("#new-password", newPassword)
+        await expectPuppeteer(page).toClick('.btn', {text: "Update password"});
+    }
+
 }
