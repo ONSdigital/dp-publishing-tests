@@ -963,6 +963,26 @@ const Zebedee = class {
         });
     }
 
+    static async getUserByName(userName) {
+        return await fetch(`${zebedeeURL}/users`, {
+            method: "GET",
+            headers: {
+                "X-Florence-Token": this.getAdminAccessToken()
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw Error(`${response.status} - ${response.statusText}\nFailed to get user: ${userID}`);
+            }
+            return response.json();
+        }).then(json => {
+            return json.find(user => {
+                return user.name === userName;
+            });
+        }).catch(error => {
+            Log.error(error);
+        });
+    }
+
     static async getPermissionsByUserID(userID) {
         return await fetch(`${zebedeeURL}/permission?email=${userID}`, {
             method: "GET",
