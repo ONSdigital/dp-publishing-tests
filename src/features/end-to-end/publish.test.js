@@ -13,9 +13,15 @@ import PublishQueuePage, { publishQueueSelectors } from '../../pages/publish-que
 import WebPage from '../../pages/WebPage';
 import WorkspacePage from '../../pages/workspace/WorkspacePage';
 import UsersPage from '../../pages/users/UsersPage';
+<<<<<<< Updated upstream
 import UserDetailsPage, { userDetailsSelectors } from '../../pages/users/UserDetailsPage';
 import ChangeUsersPasswordPage, { changeUserPasswordSelectors } from '../../pages/users/ChangeUsersPasswordPage';
 import ConfirmDeleteUserPage, { deleteUserSelector } from '../../pages/users/ConfirmDeleteUserPage';
+=======
+import TeamsPage from '../../pages/teams/TeamsPage';
+import PreviewPage from '../../pages/preview/PreviewPage';
+import { resolve } from 'dns';
+>>>>>>> Stashed changes
 
 beforeAll(async () => {
     await Page.initialise();
@@ -49,41 +55,8 @@ const publishNewPage = async publishType => {
     CollectionsPage.addCreatedCollectionID(newCollection.id);
     
     await CollectionDetails.waitForLoad();
-    await expectPuppeteer(page).toClick(collectionDetailsSelectors.createEditPageButton);
     
-    await BrowsePages.waitForLoad();
-
-    // We have to check that the preview's content window has updated it's location.href value.
-    // if it hasn't updated yet then the create page screen can break because Florence checks the location
-    // that a page is being created under, but will get an old page and state that the bulletin
-    // cannot be created there.
-    await BrowsePages.waitForPreviewToLoadURL("/").catch(error => {
-        console.error("Error waiting for the preview pane to load", error);
-        throw error;
-    });
-
-    const selectedPage = await BrowsePages.getSelectedPageElement();
-    await expectPuppeteer(selectedPage).toClick(browsePagesSelector.createButton);
-    
-    await CreatePage.waitForLoad();
-    await page.select(createPageSelectors.pageTypeSelect, 'static_landing_page');
-
-    await CreatePage.fillCreatePageForm({
-        name: pageName
-    });
-
-    await expectPuppeteer(page).toClick(createPageSelectors.submitButton);
-
-    // Check that an error message isn't showing, this is because sometime we'll
-    // get errors if the same page exists
-    expect(await Page.hasGlobalErrorMsg()).toBe(false);
-
-    await Promise.all([
-        EditPage.waitForLoad(),
-        WorkspacePage.waitForPreviewToLoad()
-    ]);
-    const pagePath = await WorkspacePage.getAddressBarPath();
-    await expectPuppeteer(page).toClick(editPageSelectors.submitForReviewButton);
+    const pagePath = await createNewPage(pageName);
     
     await CollectionDetails.waitForLoad();
 
@@ -135,6 +108,45 @@ const publishNewPage = async publishType => {
         name: pageName,
         publishDate
     };
+}
+
+const createNewPage = async (pageName) => {
+    await expectPuppeteer(page).toClick(collectionDetailsSelectors.createEditPageButton);
+    
+    await BrowsePages.waitForLoad();
+
+    // We have to check that the preview's content window has updated it's location.href value.
+    // if it hasn't updated yet then the create page screen can break because Florence checks the location
+    // that a page is being created under, but will get an old page and state that the bulletin
+    // cannot be created there.
+    await BrowsePages.waitForPreviewToLoadURL("/").catch(error => {
+        console.error("Error waiting for the preview pane to load", error);
+        throw error;
+    });
+
+    const selectedPage = await BrowsePages.getSelectedPageElement();
+    await expectPuppeteer(selectedPage).toClick(browsePagesSelector.createButton);
+    
+    await CreatePage.waitForLoad();
+    await page.select(createPageSelectors.pageTypeSelect, 'static_landing_page');
+
+    await CreatePage.fillCreatePageForm({
+        name: pageName
+    });
+
+    await expectPuppeteer(page).toClick(createPageSelectors.submitButton);
+
+    // Check that an error message isn't showing, this is because sometime we'll
+    // get errors if the same page exists
+    expect(await Page.hasGlobalErrorMsg()).toBe(false);
+
+    await Promise.all([
+        EditPage.waitForLoad(),
+        WorkspacePage.waitForPreviewToLoad()
+    ]);
+    const pagePath = await WorkspacePage.getAddressBarPath();
+    await expectPuppeteer(page).toClick(editPageSelectors.submitForReviewButton);
+    return pagePath;
 }
 
 const checkPageIsLive = async (path, name, publishDate) => {
@@ -215,7 +227,11 @@ const tempUser = {
     password: "test-password"
 }
 
-describe("Creating users", () => {
+const tempTeam = {
+    name: "AccTestTeam1"
+}
+
+describe("Creating users end-to-end", () => {
 
     beforeEach(async () => {
         await LoginPage.revokeAuthentication();
@@ -224,6 +240,7 @@ describe("Creating users", () => {
 
     afterEach(async () => {
         await Zebedee.deleteUsers([tempUser]);
+        //await Zebedee.deleteTeam(tempTeam.name);
     });
 
     afterAll(async () => {
@@ -239,7 +256,7 @@ describe("Creating users", () => {
         await UsersPage.waitForLoad();
         await UsersPage.createUser(tempUser, "admin");
 
-        // log out and try sign in as new admin and set new password
+        // log out and try sign in as new user and set new password
         await LoginPage.revokeAuthentication();
         await LoginPage.load();
         await LoginPage.waitForLoad();
@@ -262,7 +279,7 @@ describe("Creating users", () => {
         await UsersPage.waitForLoad();
         await UsersPage.createUser(tempUser, "admin");
 
-        // log out and try sign in as new admin and set new password
+        // log out and try sign in as new user and set new password
         await LoginPage.revokeAuthentication();
         await LoginPage.load();
         await LoginPage.waitForLoad();
@@ -285,7 +302,7 @@ describe("Creating users", () => {
         await UsersPage.waitForLoad();
         await UsersPage.createUser(tempUser, "publisher");
 
-        // log out and try sign in as new admin and set new password
+        // log out and try sign in as new user and set new password
         await LoginPage.revokeAuthentication();
         await LoginPage.load();
         await LoginPage.waitForLoad();
@@ -308,7 +325,7 @@ describe("Creating users", () => {
         await UsersPage.waitForLoad();
         await UsersPage.createUser(tempUser, "publisher");
 
-        // log out and try sign in as new admin and set new password
+        // log out and try sign in as new user and set new password
         await LoginPage.revokeAuthentication();
         await LoginPage.load();
         await LoginPage.waitForLoad();
@@ -321,6 +338,66 @@ describe("Creating users", () => {
         const pageName = await getPageHeadingByURL(newPage.path, newPage.publishDate);
         expect(pageName).toBe(newPage.name);
     }, 240000);
+
+    it.only("new viewer can login and view created/editted content", async () => {
+        await LoginPage.login(Zebedee.getTempAdminUserEmail(), Zebedee.getTempAccountsPassword())
+        await CollectionsPage.waitForLoad();
+
+        // create user 
+        await Page.goto("/users");
+        await UsersPage.waitForLoad();
+        await UsersPage.createUser(tempUser, "viewer");
+        const userResponse = await Zebedee.getUserByName(tempUser.username);
+        expect(userResponse.email).toBe(tempUser.email);
+
+        // create team
+        await Page.goto("/teams");
+        await TeamsPage.waitForLoad();
+        await TeamsPage.createTeam(tempTeam.name);
+
+        // add user to team
+        // TODO probably want to do this step via the UI
+        await Zebedee.addUserToTeam(tempTeam.name, tempUser.email);
+        await TeamsPage.selectTeam(tempTeam.name);
+        
+        // create collection that new team can preview
+        await Page.goto("/collections");
+        await CollectionsPage.fillCreateCollectionForm({
+            name: "Acceptance test - created manual collection",
+            releaseType: "manual",
+        });
+        const newCollection = await CollectionsPage.submitCreateCollectionForm();
+        await CollectionsPage.addTeamToCollection(newCollection.id, tempTeam.name);
+
+        // add content to collection
+        await Page.goto(`/collections/${newCollection.id}`);
+        await CollectionDetails.waitForLoad();
+        const newPageTitle = "New acceptance test page"
+        await createNewPage(newPageTitle);
+
+        // log out and try sign in as new user and set new password
+        await LoginPage.revokeAuthentication();
+        await LoginPage.load();
+        await LoginPage.waitForLoad();
+        await LoginPage.login(tempUser.email, tempUser.password)
+        await LoginPage.updateTemporaryPassword("a new password value");
+        await CollectionsPage.waitForLoad();
+
+        // load preview and check create page is previewable
+        await expectPuppeteer(page).toClick(`#${newCollection.id}`);
+        await expectPuppeteer(page).toMatchElement('#iframe');
+        await PreviewPage.waitForLoad(newPageTitle);
+        const frames = await page.frames();
+        await expectPuppeteer(page).toSelect('#preview-select', newPageTitle);
+        await frames[1].waitForSelector('.static_landing_page')
+        const iframeTitle = await PreviewPage.iframeContentHasCorrectTitle(await frames[1].content());
+        expect(iframeTitle).toBe(newPageTitle)
+
+        Zebedee.deleteCollection(newCollection.id);
+
+    }, 240000);
+})
+
 });
 
 describe("Resetting a user's password", () => {
@@ -447,3 +524,5 @@ describe("Deleting users", () => {
         expect(APICallStatus).toBe(401);
     });
 });
+
+    
