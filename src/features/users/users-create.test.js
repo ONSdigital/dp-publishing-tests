@@ -42,7 +42,7 @@ describe("Creating a new user", () => {
         expect(userDetailsIsLoaded).toBe(true);
 
         // check user has been created by API
-        const response = await Zebedee.getUserByID(createTestUsers[0].email);
+        const response = await Zebedee.getUserByID(createTestUsers[0].email).then(response => response.json());
         expect(response.name).toBe(createTestUsers[0].username);
     })
 

@@ -386,10 +386,7 @@ describe("Resetting a user's password", () => {
     });
 });
 
-/*
-Admin user can login, create a publisher user; user can login, user can make API calls to Zebedee; admin user can delete a user; deleted user can no longer login, API calls to Zebedee fail
-*/
-describe.only("Deleting users", () => {
+describe("Deleting users", () => {
     
     afterAll(async () => {
         const userResponse = await Zebedee.getUserByID(tempUser.email);
