@@ -1,10 +1,15 @@
 import CollectionsPage from '../../pages/collections/CollectionsPage';
 import LoginPage from '../../pages/login/LoginPage';
 
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
+
 describe("Collections screen", () => {
-    
+
     beforeAll(async () => {
-        await CollectionsPage.initialise();
+        await CollectionsPage.revokeAuthentication();
+        await CollectionsPage.loginAsAdmin();
     });
 
     it("loads [smoke]", async () => {
@@ -24,7 +29,4 @@ describe("Collections screen", () => {
         await CollectionsPage.load();
         expect(await CollectionsPage.currentPath()).toBe("/florence/login?redirect=%2Fflorence%2Fcollections");
     });
-
-    //TODO end-to-end create collection and manual publish
-
 });

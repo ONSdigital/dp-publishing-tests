@@ -2,6 +2,7 @@ import expectPuppeteer from 'expect-puppeteer';
 import interval from 'interval-promise';
 
 import Zebedee from "../../../clients/Zebedee";
+import CollectionEdit from '../../pages/collections/CollectionEdit';
 import Page from "../Page";
 import Log from "../../utilities/Log";
 
@@ -25,7 +26,13 @@ export default class CollectionsPage extends Page {
     }
 
     static async waitForLoad() {
-        await page.waitForSelector('h1', {text: "Select a collection", visible: true});
+        try {
+            await page.waitForXPath("//h1[text()='Select a collection']");
+            await page.waitForSelector(`.loader.selectable-box__status`, {hidden: true});
+        } catch (error) {
+            console.error("Error waiting for collections screen to load", error);
+            fail("Error waiting for collections screen to load");
+        }
     }
 
     static async load() {       
@@ -209,5 +216,13 @@ export default class CollectionsPage extends Page {
     static async cleanupCollectionsList() {
         await this.cleanupCreatedCollections();
         await this.deleteLiveCalendarEntry();
+    }
+
+    static async addTeamToCollection(collectionID, teamName) {
+        await Page.goto(`/collections/${collectionID}/edit`);
+        await CollectionEdit.waitForLoad();
+        await expectPuppeteer(page).toSelect('select[id="collection-edit-teams"]',teamName);
+        await expectPuppeteer(page).toClick('button', { text: 'Save and return' });
+        return await page.waitForResponse(`${process.env.PUBLISHING_ENV_URL}/zebedee/collection/${collectionID}`);
     }
 }

@@ -53,10 +53,15 @@ const tempPageData = {
 let testCollections = [];
 let testPage;
 
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
+
 describe("Viewing collection details", () => {
 
     beforeAll(async () => {
-        await CollectionsPage.initialise();
+        await CollectionsPage.revokeAuthentication();
+        await CollectionsPage.loginAsAdmin();
         console.log("Automatically creating test collection");
         testCollections = await CollectionsPage.setupCollectionsList(tempCollectionData);
         testPage = await Zebedee.createPage(testCollections[0].id, tempPageData);

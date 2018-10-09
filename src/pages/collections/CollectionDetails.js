@@ -30,7 +30,6 @@ export default class CollectionDetails extends Page {
         await super.goto(`/collections/${ID}`).catch(error => {
             console.error("Error navigating to a collection's details screen\n", error);
         });
-        await super.screenshot("collection-details");
     }
 
     static async getElement() {

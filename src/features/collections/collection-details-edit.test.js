@@ -21,11 +21,16 @@ const tempTeams = [
 
 let testCollection = []
 
+beforeAll(async () => {
+    await CollectionsPage.initialise();
+});
+
 describe("Editing a collection", () => {
 
     beforeAll(async () => {
-        await CollectionsPage.initialise();
         console.log("Automatically creating test collection");
+        await CollectionsPage.revokeAuthentication();
+        await CollectionsPage.loginAsAdmin();
         testCollection = await CollectionsPage.setupCollectionsList(tempCollectionData);
         await Zebedee.createTeam(tempTeams[0].name);
         await Zebedee.createTeam(tempTeams[1].name);
@@ -62,7 +67,7 @@ describe("Editing a collection", () => {
         const editName = await CollectionEdit.getInputValue("#collection-edit-name");
         expect(editName).toBe("Acceptance test collection for edit collection test")
         const editTeams = await CollectionEdit.getInputValue("#collection-edit-teams");
-        expect(editTeams).toBe("");
+        expect(editTeams).toBe("default-option");
         const scheduledPublish = await CollectionEdit.getRadioSelectedValue("#edit-type-schedule");
         expect(scheduledPublish).toBeFalsy();
         const manualPublish = await CollectionEdit.getRadioSelectedValue("#edit-type-manual");

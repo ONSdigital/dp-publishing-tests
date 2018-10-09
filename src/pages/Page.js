@@ -32,8 +32,6 @@ export default class Page {
         }
 
         if (isDebugMode) {
-            jest.setTimeout(50000);
-        } else {
             jest.setTimeout(30000);
         }
         
@@ -50,6 +48,10 @@ export default class Page {
     }
 
     static async goto(path) {
+        if (!florenceURL) {
+            console.error("Unable to navigate to Florence because no PUBLISHING_ENV_URL provided");
+            return;
+        }
         return await page.goto(`${florenceURL}${path}`);
     }
 
@@ -80,6 +82,24 @@ export default class Page {
         await this.setAccessTokenCookie(tempAccessToken);
         await this.setSessionEmailLocalStorage(Zebedee.getTempViewerUserEmail());
         await this.setUserTypeLocalStorage("VIEWER");
+    }
+
+    static async loginAsPublisher() {
+        // TODO detect if cookie is set first and not set cookie again if so.
+        let tempAccessToken = Zebedee.getTempPublisherAccessToken();
+        if (!tempAccessToken) {
+            tempAccessToken = await Zebedee.createTempPublisherUser(Zebedee.getAdminAccessToken());
+        }
+        
+        // Go to any page first because we can't set cookies on a blank page
+        // and we need to set the access_token for accessing the collections screen
+        await this.goto("").catch(error => {
+            console.error("Error navigating to login page\n", error);
+        });
+
+        await this.setAccessTokenCookie(tempAccessToken);
+        await this.setSessionEmailLocalStorage(Zebedee.getTempPublisherUserEmail());
+        await this.setUserTypeLocalStorage("PUBLISHING_SUPPORT");
     }
     
     static async loginAsAdmin() {
@@ -145,9 +165,11 @@ export default class Page {
             // We use a promise so that we can wait until the transitionend event is fired
             // before continuing with the rest of the test (or else it'll fail on slower machines)
             await page.$eval('li.notifications__item', element => {
-                return new Promise((resolve, reject) => {
+                return new Promise(resolve => {
                     const rejectTimer = setTimeout(() => {
-                        reject("Notification transitionend event not fired within 5 seconds");
+                        console.error("Notification transitionend event not fired within 5 seconds, resolving Promise because notification item must be visible now");
+                        resolve();
+                        clearTimeout(rejectTimer);
                     }, 5000);
                     element.addEventListener('transitionend', () => {
                         console.log("Notification displayed");
@@ -172,28 +194,23 @@ export default class Page {
         })
     }
 
-    static async waitForRequestResponse(URL, method = "GET") {
+    static async requestStatus(URL, method, body) {
+        const response = await page.evaluate(async (URL, method, body) => {
+            const req = await fetch(URL, {
+                credentials: "include",
+                method,
+                body
+            }).catch(error => {throw error});
+            return req.status;
+        }, URL, method, body);
+        return response;
+    }
+
+    static async waitForRequestResponse(URL) {
         if (URL.startsWith("/")) {
             URL = `${process.env.PUBLISHING_ENV_URL}${URL}`;
         }
-        
-        return new Promise((resolve, reject) => {
-            const handleResponse = async response => {
-                const req = response.request();
-                if (req.url() === URL && req.method() === method) {
-                    page.removeListener('response', handleResponse);
-                    clearTimeout(failureTimer);
-                    resolve();
-                }
-            };
 
-            const failureTimer = setTimeout(() => {
-                page.removeListener('response', handleResponse);
-                fail(`Timed out (10000ms) waiting for response from ${method} request to URL '${URL}'`);
-                reject();
-            }, 10000);
-
-            page.on('response', handleResponse);
-        })
+        return page.waitForResponse(URL);
     }
 }
